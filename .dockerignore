@@ -1,0 +1,56 @@
+# ========================================
+# Next.js + shadcn/ui Docker Ignore
+# ========================================
+
+# 版本控制
+.git/
+.gitignore
+.gitattributes
+
+# 依赖和构建产物
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# 环境变量文件
+.env*
+*.log
+
+# 开发工具和缓存
+.turbo/
+.cache/
+.vscode/
+.idea/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 文档
+*.md
+README*
+
+# 测试相关
+coverage/
+__tests__/
+*.test.*
+*.spec.*
+
+# 代码质量工具
+.prettierrc*
+.eslintrc*
+.editorconfig
+
+# Next.js 特定文件
+next-env.d.ts
+
+# shadcn/ui 配置
+components.json
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.backup 
