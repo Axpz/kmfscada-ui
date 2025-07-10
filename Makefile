@@ -22,4 +22,8 @@ clean: ## Clean build artifacts and cache
 
 # Docker commands
 docker: ## Build Docker image for linux/amd64
-	docker build --platform linux/amd64 -t scada-ui:latest . 
+	docker build -t kmfscada-ui:latest . 
+
+# Docker commands
+docker-build: ## Build Docker image for linux/amd64
+	docker build --platform linux/amd64 -t kmfscada-ui-linux-amd64:latest . 

@@ -13,7 +13,7 @@ import { Loader2, Users, AlertCircle, Edit, Trash2 } from 'lucide-react'
 export default function UserManagement() {
   const { data: usersResponse, isLoading, error } = useUsers()
   
-  const users: User[] = usersResponse?.data || []
+  const users: User[] = usersResponse?.users || []
   const errorMessage = error?.message || usersResponse?.error
 
   if (isLoading) {
@@ -76,8 +76,9 @@ export default function UserManagement() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Created</TableHead>
-                  <TableHead>Updated</TableHead>
+                  <TableHead>Last Sign In</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -93,12 +94,19 @@ export default function UserManagement() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{user.email.split('@')[0]}</p>
+                          <p className="font-medium">
+                            {user.user_metadata?.username || user.email.split('@')[0]}
+                          </p>
                           <p className="text-xs text-muted-foreground">ID: {user.id}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                        {user.role || 'user'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <p>{new Date(user.created_at).toLocaleDateString()}</p>
@@ -108,15 +116,21 @@ export default function UserManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        <p>{new Date(user.updated_at).toLocaleDateString()}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(user.updated_at).toLocaleTimeString()}
-                        </p>
-                      </div>
+                      {user.last_sign_in_at ? (
+                        <div className="text-sm">
+                          <p>{new Date(user.last_sign_in_at).toLocaleDateString()}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(user.last_sign_in_at).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Never</span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">Active</Badge>
+                      <Badge variant={user.confirmed_at ? 'default' : 'destructive'}>
+                        {user.confirmed_at ? 'Active' : 'Pending'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

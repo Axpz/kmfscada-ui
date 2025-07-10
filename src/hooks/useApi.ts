@@ -68,4 +68,46 @@ export function useUpdateProductionData() {
       queryClient.invalidateQueries({ queryKey: ['production-data'] })
     },
   })
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (data: { email: string; password: string; role?: string; username?: string; full_name?: string }) => {
+      const response = await apiClient.post('/users', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { role?: string; username?: string; full_name?: string } }) => {
+      const response = await apiClient.put(`/users/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.delete(`/users/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
 } 

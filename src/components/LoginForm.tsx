@@ -13,6 +13,8 @@ import { Loader2, AlertCircle } from 'lucide-react'
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [fullName, setFullName] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -26,7 +28,7 @@ export default function LoginForm() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password)
+        const { error } = await signUp(email, password, username, fullName)
         if (error) {
           setError(error.message)
         }
@@ -41,6 +43,19 @@ export default function LoginForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const resetForm = () => {
+    setEmail('')
+    setPassword('')
+    setUsername('')
+    setFullName('')
+    setError('')
+  }
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp)
+    resetForm()
   }
 
   return (
@@ -70,6 +85,32 @@ export default function LoginForm() {
                 required
               />
             </div>
+            
+            {isSignUp && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -109,7 +150,7 @@ export default function LoginForm() {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={toggleMode}
                 className="text-sm"
               >
                 {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

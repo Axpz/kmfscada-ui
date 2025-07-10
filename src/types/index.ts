@@ -2,10 +2,17 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
   role: UserRole;
   created_at: string;
-  updated_at: string;
+  last_sign_in_at?: string;
+  confirmed_at?: string;
+  user_metadata?: {
+    username?: string;
+    full_name?: string;
+  };
+  app_metadata?: {
+    role?: string;
+  };
 }
 
 export type UserRole = 'admin' | 'user' | 'operator';
