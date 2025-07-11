@@ -1,9 +1,10 @@
 // 主要功能组件
-export { default as Dashboard } from './Dashboard';
-export { default as LoginForm } from './LoginForm';
-export { default as ProductionForm } from './ProductionForm';
-export { default as UserManagement } from './UserManagement';
-export { default as ScadaWorkshopDashboard } from './ScadaWorkshopDashboard';
+export { default as Dashboard } from './Dashboard'
+export { default as LoginForm } from './LoginForm'
+export { default as LoadingSpinner } from './LoadingSpinner'
+export { default as ProductionForm } from './ProductionForm'
+export { default as ScadaWorkshopDashboard } from './ScadaWorkshopDashboard'
+export { default as UserManagement } from './UserManagement'
 
 // UI 组件
 export * from './ui/alert';

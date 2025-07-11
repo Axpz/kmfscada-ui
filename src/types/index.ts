@@ -30,10 +30,15 @@ export interface AuthResponse {
 
 // 生产相关类型
 export interface ProductionData {
-  id?: string;
-  value: number;
-  unit: string;
-  description: string;
+  id: string;
+  status: string;
+  batch_number: string;
+  current: number;
+  voltage: number;
+  power: number;
+  temperature: number;
+  fluoride_concentration: number;
+  last_updated?: string;
   created_at?: string;
   updated_at?: string;
 }

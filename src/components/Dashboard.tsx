@@ -19,7 +19,7 @@ export default function Dashboard() {
     error 
   } = useProductionData()
 
-  const productionData: ProductionData[] = productionDataResponse?.data || []
+  const productionData: ProductionData[] = productionDataResponse?.lines || []
   const errorMessage = error?.message || productionDataResponse?.error
 
   const handleSignOut = async () => {

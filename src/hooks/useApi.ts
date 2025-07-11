@@ -25,7 +25,7 @@ export function useProductionData() {
   return useQuery({
     queryKey: ['production-data'],
     queryFn: async () => {
-      const response = await apiClient.get('/production')
+      const response = await apiClient.get('/production/lines')
       return response.data
     },
     refetchInterval: 30000, // Refetch every 30 seconds

@@ -1,6 +1,6 @@
 # Makefile for KMF SCADA UI
 
-.PHONY: help dev build docker clean
+.PHONY: help dev build docker clean clear-cache
 
 # Default target
 help: ## Show this help message
@@ -19,6 +19,12 @@ clean: ## Clean build artifacts and cache
 	rm -rf dist
 	rm -rf node_modules/.cache
 	rm -f tsconfig.tsbuildinfo
+
+clear-cache: ## Clear all cache and reinstall dependencies
+	rm -rf .next
+	rm -rf node_modules
+	pnpm install
+	@echo "Cache cleared and dependencies reinstalled. Run 'make dev' to start the server."
 
 # Docker commands
 docker: ## Build Docker image for linux/amd64

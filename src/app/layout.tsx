@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '../contexts'
 import QueryProvider from '../providers/QueryProvider'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export const metadata: Metadata = {
   title: {
