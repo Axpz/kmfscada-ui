@@ -58,8 +58,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOutMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+
+        if (!sessionData?.session) {
+          console.warn("Token still exists, but session is gone.");
+          await supabase.auth.signOut({ scope: 'local' });
+          return;
+        }
+
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) throw signOutError;
+      } catch (error) {
+        console.error('Sign out error:', error);
+        await supabase.auth.signOut({ scope: 'local' });
+        throw error;
+      }
     },
   })
 

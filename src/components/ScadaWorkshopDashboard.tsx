@@ -11,6 +11,7 @@ import {
 import {
   Thermometer, Gauge, Ruler, Factory, FlaskConical, LineChart, TrendingUp, Droplet, Cog, Cable
 } from "lucide-react";
+import CameraMonitor from "./CameraMonitor";
 import {
   LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer
 } from "recharts";
@@ -380,6 +381,12 @@ const ScadaWorkshopDashboard: React.FC = () => {
         </div>
       </header>
       <div className="grid grid-cols-1 gap-6">
+        {/* 摄像头监控区域 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CameraMonitor title="一号线摄像头监控" />
+          <CameraMonitor title="二号线摄像头监控" />
+        </div>
+        
         <div className="space-y-6">
           <div className="workshop-diagram-container p-0 bg-gray-900 border border-gray-700 rounded-lg w-full">
             <div className="flex items-center justify-between mb-4 px-4 pt-4">
