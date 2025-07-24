@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo 测试页面</title>
+  <style>
+    body { 
+      font-family: system-ui, sans-serif; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background: #f9fafb;
+    }
+    .test-section {
+      background: white;
+      padding: 30px;
+      margin: 20px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 10px 0;
+      border: 2px dashed #e5e7eb;
+      border-radius: 8px;
+    }
+    .dark-bg {
+      background: #1f2937;
+    }
+    h1 { color: #ff8c00; }
+    h2 { color: #374151; }
+  </style>
+</head>
+<body>
+  <h1>🧪 KFM·Scada Logo 测试</h1>
+  
+  <div class="test-section">
+    <h2>简洁版 Logo (kfm-scada-logo-simple.svg)</h2>
+    <div class="logo-container">
+      <img src="/kfm-scada-logo-simple.svg" alt="KFM Scada Simple Logo" width="200" height="50">
+    </div>
+    <div class="logo-container dark-bg">
+      <img src="/kfm-scada-logo-simple.svg" alt="KFM Scada Simple Logo" width="200" height="50">
+    </div>
+    <p>✅ 用于: 导航栏、页面头部、空间有限的场景</p>
+  </div>
+
+  <div class="test-section">
+    <h2>图标版本 (kfm-icon.svg)</h2>
+    <div class="logo-container">
+      <img src="/kfm-icon.svg" alt="KFM Icon" width="48" height="48">
+    </div>
+    <div class="logo-container dark-bg">
+      <img src="/kfm-icon.svg" alt="KFM Icon" width="48" height="48">
+    </div>
+    <p>✅ 用于: 应用图标、按钮、小尺寸显示</p>
+  </div>
+
+  <div class="test-section">
+    <h2>Favicon (favicon.svg)</h2>
+    <div class="logo-container">
+      <img src="/favicon.svg" alt="Favicon" width="32" height="32">
+    </div>
+    <div class="logo-container dark-bg">
+      <img src="/favicon.svg" alt="Favicon" width="32" height="32">
+    </div>
+    <p>✅ 用于: 浏览器标签页图标</p>
+  </div>
+
+  <div class="test-section">
+    <h2>🎯 集成状态</h2>
+    <ul>
+      <li>✅ Logo 组件已更新为使用新文件</li>
+      <li>✅ Layout metadata 已更新</li>
+      <li>✅ Site webmanifest 已更新</li>
+      <li>✅ 主题色已更新为橙色 (#ff8c00)</li>
+    </ul>
+    
+    <h3>使用方式:</h3>
+    <pre><code>// 图标版本
+&lt;Logo variant="icon" size="md" /&gt;
+
+// 完整版本
+&lt;Logo variant="full" size="lg" /&gt;</code></pre>
+  </div>
+</body>
+</html>

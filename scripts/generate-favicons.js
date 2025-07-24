@@ -29,7 +29,7 @@ const generateFaviconHTML = () => {
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#3b82f6" />`;
+<meta name="theme-color" content="#ff8c00" />`;
 };
 
 // 生成HTML文件
@@ -38,7 +38,7 @@ const htmlContent = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCADA System - Favicon Generator</title>
+  <title>KFM·Scada - Favicon Generator</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
     .favicon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
@@ -49,21 +49,26 @@ const htmlContent = `<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>🎨 SCADA System Favicon Generator</h1>
+  <h1>🎨 KFM·Scada Favicon Generator</h1>
   
   <p>这个页面展示了SCADA系统的favicon和logo文件。</p>
   
   <h2>📁 生成的文件</h2>
   <div class="favicon-grid">
     <div class="favicon-item">
-      <h3>SVG Logo</h3>
-      <img src="/logo.svg" alt="SVG Logo" width="64" height="64">
-      <p><code>/logo.svg</code></p>
+      <h3>KFM·Scada Logo</h3>
+      <img src="/kfm-scada-logo.svg" alt="KFM Scada Logo" width="140" height="30">
+      <p><code>/kfm-scada-logo.svg</code></p>
     </div>
     <div class="favicon-item">
-      <h3>Large Logo</h3>
-      <img src="/logo-large.svg" alt="Large Logo" width="120" height="40">
-      <p><code>/logo-large.svg</code></p>
+      <h3>Simple Logo</h3>
+      <img src="/kfm-scada-logo-simple.svg" alt="KFM Scada Simple Logo" width="100" height="25">
+      <p><code>/kfm-scada-logo-simple.svg</code></p>
+    </div>
+    <div class="favicon-item">
+      <h3>Icon</h3>
+      <img src="/kfm-icon.svg" alt="KFM Icon" width="48" height="48">
+      <p><code>/kfm-icon.svg</code></p>
     </div>
     <div class="favicon-item">
       <h3>Favicon</h3>
@@ -93,17 +98,16 @@ const htmlContent = `<!DOCTYPE html>
   </ul>
 </body>
 </html>`;
-};
 
 // 写入HTML文件
-const htmlPath = path.join(__dirname, '..', 'src', 'app', 'public', 'favicon-preview.html');
+const htmlPath = path.join(__dirname, '..', 'public', 'favicon-preview.html');
 fs.writeFileSync(htmlPath, htmlContent);
 
 console.log('✅ 生成的文件:');
-console.log('  📄 favicon.svg - SVG格式的favicon');
-console.log('  📄 logo.svg - 应用内使用的logo');
-console.log('  📄 logo-large.svg - 带文字的完整logo');
-console.log('  📄 site.webmanifest - PWA配置文件');
+console.log('  📄 favicon.svg - SVG格式的favicon (橙色主题)');
+console.log('  📄 kfm-scada-logo.svg - 完整的KFM·Scada logo');
+console.log('  📄 kfm-scada-logo-simple.svg - 简洁版logo');
+console.log('  📄 kfm-icon.svg - 图标版本');
 console.log('  📄 favicon-preview.html - 预览页面');
 
 console.log('\n🎯 下一步:');

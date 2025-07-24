@@ -1,22 +1,22 @@
 {
-  "name": "SCADA System",
-  "short_name": "SCADA",
+  "name": "KFM·Scada",
+  "short_name": "KFM",
   "description": "Industrial monitoring and data acquisition system",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
+  "theme_color": "#ff8c00",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logo.svg",
-      "sizes": "32x32",
+      "src": "/kfm-icon.svg",
+      "sizes": "48x48",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-large.svg",
-      "sizes": "120x40",
+      "src": "/kfm-scada-logo-simple.svg",
+      "sizes": "200x50",
       "type": "image/svg+xml",
       "purpose": "any"
     }

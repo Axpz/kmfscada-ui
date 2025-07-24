@@ -17,17 +17,17 @@ export function Logo({ className, size = "md", variant = "icon" }: LogoProps) {
   const fullSizeClasses = {
     sm: "h-6 w-auto",
     md: "h-8 w-auto",
-    lg: "h-10 w-auto"
+    lg: "h-12 w-auto"
   }
 
   if (variant === "full") {
     return (
       <div className={cn("flex items-center", className)}>
         <Image
-          src="/logo-large.svg"
-          alt="SCADA Industrial Control"
-          width={120}
-          height={40}
+          src="/kfm-scada-logo-simple.svg"
+          alt="KFM·Scada Industrial Control"
+          width={200}
+          height={50}
           className={cn(fullSizeClasses[size])}
           priority
         />
@@ -38,10 +38,10 @@ export function Logo({ className, size = "md", variant = "icon" }: LogoProps) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <Image
-        src="/logo.svg"
-        alt="SCADA"
-        width={32}
-        height={32}
+        src="/kfm-icon.svg"
+        alt="KFM·Scada"
+        width={48}
+        height={48}
         className={cn(sizeClasses[size])}
         priority
       />

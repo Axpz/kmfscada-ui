@@ -7,14 +7,14 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 export const metadata: Metadata = {
   title: {
-    default: 'SCADA System',
-    template: '%s | SCADA System'
+    default: 'KFM·Scada',
+    template: '%s | KFM·Scada'
   },
   description: 'Industrial monitoring and data acquisition system for real-time process control and automation',
   keywords: ['SCADA', 'Industrial Control', 'Automation', 'Monitoring', 'Data Acquisition'],
   authors: [{ name: 'SCADA Team' }],
   creator: 'SCADA Team',
-  publisher: 'SCADA System',
+  publisher: 'KFM·Scada',
   formatDetection: {
     email: false,
     address: false,
@@ -28,23 +28,23 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    title: 'SCADA System',
+    title: 'KFM·Scada',
     description: 'Industrial monitoring and data acquisition system',
-    siteName: 'SCADA System',
+    siteName: 'KFM·Scada',
     images: [
       {
-        url: '/logo-large.svg',
-        width: 120,
-        height: 40,
-        alt: 'SCADA System Logo',
+        url: '/kfm-scada-logo-simple.svg',
+        width: 200,
+        height: 50,
+        alt: 'KFM·Scada Logo',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SCADA System',
+    title: 'KFM·Scada',
     description: 'Industrial monitoring and data acquisition system',
-    images: ['/logo-large.svg'],
+    images: ['/kfm-scada-logo-simple.svg'],
   },
   robots: {
     index: true,
@@ -81,7 +81,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>SCADA System</title>
+        <title>KFM·Scada</title>
         <meta name="description" content="Industrial monitoring and data acquisition system for real-time process control and automation" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />

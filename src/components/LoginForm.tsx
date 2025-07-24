@@ -8,7 +8,7 @@ import { Label } from './ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Alert, AlertDescription } from './ui/alert'
 import { Logo } from './ui/logo'
-import { Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, Mail, User, UserPlus } from 'lucide-react'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -59,106 +59,144 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <Logo size="lg" />
-          </div>
-          <CardTitle className="text-2xl text-center">
-            SCADA System
-          </CardTitle>
-          <p className="text-center text-sm text-muted-foreground">
-            {isSignUp ? 'Create your account' : 'Sign in to your account'}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+      <div className="w-full max-w-md animate-fadeInUp">
+        <Card className="shadow-2xl border-2 border-primary/10">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex items-center justify-center mb-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
+                <Logo size="sm" className="text-primary-foreground" />
+              </div>
             </div>
-            
-            {isSignUp && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? (
+            <CardTitle className="text-3xl font-bold text-primary animate-fade-in" style={{ animationDelay: '400ms' }}>
+              KFM·Scada
+            </CardTitle>
+            <p className="text-muted-foreground animate-fade-in" style={{ animationDelay: '600ms' }}>
+              {isSignUp ? '创建您的账户' : '登录到您的账户'}
+            </p>
+          </CardHeader>
+          <CardContent className="animate-fade-in" style={{ animationDelay: '800ms' }}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  邮箱
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="请输入您的邮箱"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+              
+              {isSignUp && (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isSignUp ? 'Creating account...' : 'Signing in...'}
+                  <div className="space-y-2 animate-slideInFromRight">
+                    <Label htmlFor="username" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      用户名
+                    </Label>
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="请输入用户名"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="transition-all duration-200 focus:scale-[1.02]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 animate-slideInFromRight" style={{ animationDelay: '100ms' }}>
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      全名
+                    </Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="请输入您的全名"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="transition-all duration-200 focus:scale-[1.02]"
+                    />
+                  </div>
                 </>
-              ) : (
-                isSignUp ? 'Sign Up' : 'Sign In'
               )}
-            </Button>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  密码
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="请输入您的密码"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
 
-            <div className="text-center">
+              {error && (
+                <Alert variant="destructive" className="animate-fadeInUp">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <Button
-                type="button"
-                variant="link"
-                onClick={toggleMode}
-                className="text-sm"
+                type="submit"
+                className="w-full transition-all duration-300 transform hover:scale-105 focus:scale-105"
+                disabled={loading}
+                size="lg"
               >
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isSignUp ? '创建账户中...' : '登录中...'}
+                  </>
+                ) : (
+                  <>
+                    {isSignUp ? (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        注册账户
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="mr-2 h-4 w-4" />
+                        立即登录
+                      </>
+                    )}
+                  </>
+                )}
               </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={toggleMode}
+                  className="text-sm transition-colors duration-200 hover:text-primary"
+                >
+                  {isSignUp ? '已有账户？立即登录' : '没有账户？立即注册'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '1000ms' }}>
+          © 2025 KFM·Scada. 版权所有
+        </div>
+      </div>
     </div>
   )
 } 

@@ -1,40 +1,124 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts'
+import AppLayout from '../components/layout/AppLayout'
+import { Sidebar, dashboardSidebarSections, alarmSidebarSections, userSidebarSections } from '../components/layout/Sidebar'
 import LoginForm from '../components/LoginForm'
+import LandingPage from '../components/LandingPage'
 import Dashboard from '../components/Dashboard'
 import UserManagement from '../components/UserManagement'
 import ProductionForm from '../components/ProductionForm'
 import ScadaWorkshopDashboard from '../components/ScadaWorkshopDashboard'
+import AlarmCenter from '../components/AlarmCenter'
+import VisualizationCenter from '../components/VisualizationCenter'
 
-type TabType = 'dashboard' | 'users' | 'add-production' | 'workshop'
+type TabType = 'landing' | 'login' | 'dashboard' | 'users' | 'add-production' | 'workshop' | 'alarm' | 'visualization'
 
-export default function Home() {
-  const { user, loading } = useAuth()
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard')
-  const [showAddForm, setShowAddForm] = useState(false)
+export default function HomePage() {
+  const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState<TabType>('landing')
+  const [sidebarActiveItem, setSidebarActiveItem] = useState<string>('line1')
 
-  if (!user) {
-    return <LoginForm />
+  // Set initial tab based on user authentication
+  useEffect(() => {
+    if (user && activeTab === 'login') {
+      setActiveTab('dashboard')
+    } else if (!user && (activeTab !== 'landing' && activeTab !== 'login')) {
+      setActiveTab('landing')
+    }
+  }, [user, activeTab])
+
+  const handleNavigate = (tab: string) => {
+    // 如果用户未登录且尝试访问需要认证的页面，跳转到登录页面
+    const protectedTabs = ['dashboard', 'users', 'add-production', 'workshop', 'alarm', 'visualization']
+    if (!user && protectedTabs.includes(tab)) {
+      setActiveTab('login')
+      return
+    }
+    setActiveTab(tab as TabType)
   }
 
-  const renderTabContent = () => {
+  const handleSidebarItemClick = (itemId: string) => {
+    setSidebarActiveItem(itemId)
+    // 这里可以根据不同的 itemId 来更新页面内容
+    console.log('Sidebar item clicked:', itemId)
+  }
+
+  // 根据当前页面决定是否显示侧边栏和侧边栏内容
+  const getSidebarConfig = () => {
     switch (activeTab) {
+      case 'dashboard':
+        return {
+          show: true,
+          content: (
+            <Sidebar
+              sections={dashboardSidebarSections.map(section => ({
+                ...section,
+                items: section.items.map(item => ({
+                  ...item,
+                  active: item.id === sidebarActiveItem
+                }))
+              }))}
+              onItemClick={handleSidebarItemClick}
+            />
+          )
+        }
+      case 'alarm':
+        return {
+          show: true,
+          content: (
+            <Sidebar
+              sections={alarmSidebarSections.map(section => ({
+                ...section,
+                items: section.items.map(item => ({
+                  ...item,
+                  active: item.id === sidebarActiveItem
+                }))
+              }))}
+              onItemClick={handleSidebarItemClick}
+            />
+          )
+        }
+      case 'users':
+        return {
+          show: true,
+          content: (
+            <Sidebar
+              sections={userSidebarSections.map(section => ({
+                ...section,
+                items: section.items.map(item => ({
+                  ...item,
+                  active: item.id === sidebarActiveItem
+                }))
+              }))}
+              onItemClick={handleSidebarItemClick}
+            />
+          )
+        }
+      default:
+        return { show: false, content: null }
+    }
+  }
+
+  const renderPageContent = () => {
+    switch (activeTab) {
+      case 'landing':
+        return <LandingPage onNavigate={handleNavigate} />
+      case 'login':
+        return <LoginForm />
       case 'dashboard':
         return <Dashboard />
       case 'users':
         return <UserManagement />
       case 'add-production':
         return (
-          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <ProductionForm 
+          <div className="container mx-auto p-6">
+            <ProductionForm
               onSuccess={() => {
-                setShowAddForm(false)
                 setActiveTab('dashboard')
               }}
               onCancel={() => {
-                setShowAddForm(false)
                 setActiveTab('dashboard')
               }}
             />
@@ -42,72 +126,34 @@ export default function Home() {
         )
       case 'workshop':
         return <ScadaWorkshopDashboard />
+      case 'alarm':
+        return <AlarmCenter />
+      case 'visualization':
+        return <VisualizationCenter />
       default:
         return <Dashboard />
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">SCADA System</h1>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`${
-                    activeTab === 'dashboard'
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setActiveTab('workshop')}
-                  className={`${
-                    activeTab === 'workshop'
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
-                >
-                  车间大屏
-                </button>
-                <button
-                  onClick={() => setActiveTab('users')}
-                  className={`${
-                    activeTab === 'users'
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
-                >
-                  Users
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  setShowAddForm(true)
-                  setActiveTab('add-production')
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                Add Production Data
-              </button>
-              <span className="text-gray-700 text-sm">{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+  // 如果用户未登录，显示简化的布局
+  if (!user) {
+    if (activeTab === 'landing') {
+      return <LandingPage onNavigate={handleNavigate} />
+    } else {
+      return <LoginForm />
+    }
+  }
 
-      {/* Main Content */}
-      {renderTabContent()}
-    </div>
+  const sidebarConfig = getSidebarConfig()
+
+  return (
+    <AppLayout
+      activeTab={activeTab}
+      onNavigate={handleNavigate}
+      showSidebar={sidebarConfig.show}
+      sidebarContent={sidebarConfig.content}
+    >
+      {renderPageContent()}
+    </AppLayout>
   )
-} 
+}
