@@ -1,402 +1,395 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useUsers } from '../hooks'
-import type { User } from '../types'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
-import { Button } from './ui/button'
-import { Badge } from './ui/badge'
-import { Avatar, AvatarFallback } from './ui/avatar'
-import { Input } from './ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { Loader2, Users, AlertCircle, Edit, Trash2, Plus, Search, Settings } from 'lucide-react'
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from '@/hooks/useApi'
+import { User, Role } from '@/types'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import dayjs from 'dayjs'
+import {
+  Loader2,
+  Users,
+  PlusCircle,
+  Edit,
+  Trash2,
+  AlertCircle,
+} from 'lucide-react'
 
-// User Form Component
-const UserForm = ({ 
-  user, 
-  onSave, 
-  onCancel 
-}: { 
-  user?: User | null
-  onSave: (userData: any) => void
-  onCancel: () => void 
+// --- Sub-components ---
+
+const UserForm = ({
+  onOpenChange,
+  user,
+}: {
+  onOpenChange: (open: boolean) => void
+  user?: User
 }) => {
-  const [username, setUsername] = useState(user?.user_metadata?.username || '')
+  const [username, setUsername] = useState(user?.username || '')
   const [email, setEmail] = useState(user?.email || '')
-  const [role, setRole] = useState(user?.role || '操作员')
-  const [status, setStatus] = useState(user?.confirmed_at ? '活跃' : '禁用')
-  const [localError, setLocalError] = useState('')
+  const [password, setPassword] = useState('')
+  const [role, setRole] = useState<Role>(user?.role || 'user')
 
-  const handleSubmit = () => {
-    if (!username || !email || !role || !status) {
-      setLocalError('所有字段都是必填项。')
-      return
+  const { mutate: createUser, isPending: isCreating } = useCreateUser()
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (user) {
+      // 编辑模式：允许修改所有字段（除了密码）
+      updateUser(
+        {
+          id: user.id,
+          data: {
+            username: username.trim(),
+            email: email.trim(),
+            role
+          }
+        },
+        {
+          onSuccess: () => {
+            toast.success('用户信息已更新！')
+            onOpenChange(false)
+          },
+          onError: (error) => toast.error(`更新失败: ${error.message}`),
+        }
+      )
+    } else {
+      // 创建模式
+      createUser(
+        {
+          username: username.trim(),
+          email: email.trim(),
+          password,
+          role
+        },
+        {
+          onSuccess: () => {
+            toast.success('用户已成功创建！')
+            onOpenChange(false)
+            // 重置表单
+            setUsername('')
+            setEmail('')
+            setPassword('')
+            setRole('user')
+          },
+          onError: (error) => toast.error(`创建失败: ${error.message}`),
+        }
+      )
     }
-    onSave({ id: user?.id || null, username, email, role, status })
-    setLocalError('')
   }
 
+  const isPending = isCreating || isUpdating
+
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>{user ? "编辑用户" : "添加用户"}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="form-username" className="block text-sm font-medium mb-1 text-foreground">
-              用户名:
-            </label>
-            <Input 
-              id="form-username" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid gap-6">
+          {/* 用户名字段 */}
+          <div className="grid gap-2">
+            <Label htmlFor="username" className="text-sm font-medium">
+              用户名 <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="请输入用户名"
+              required
+              className="h-10"
             />
+            <p className="text-xs text-muted-foreground">
+              用户名用于登录系统，建议使用英文字母和数字
+            </p>
           </div>
-          <div>
-            <label htmlFor="form-email" className="block text-sm font-medium mb-1 text-foreground">
-              邮箱:
-            </label>
-            <Input 
-              id="form-email" 
+
+          {/* 邮箱字段 */}
+          <div className="grid gap-2">
+            <Label htmlFor="email" className="text-sm font-medium">
+              邮箱地址 <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="email"
               type="email"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="请输入邮箱地址"
+              required
+              className="h-10"
             />
+            <p className="text-xs text-muted-foreground">
+              用于接收系统通知和密码重置
+            </p>
           </div>
-          <div>
-            <label htmlFor="form-role" className="block text-sm font-medium mb-1 text-foreground">
-              角色:
-            </label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
-                <SelectValue placeholder="选择角色" />
+
+          {/* 密码字段 - 仅创建时显示 */}
+          {!user && (
+            <div className="grid gap-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                初始密码 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="请输入初始密码"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-10"
+              />
+              <p className="text-xs text-muted-foreground">
+                密码长度至少6位，建议包含字母和数字
+              </p>
+            </div>
+          )}
+
+          {/* 角色选择 */}
+          <div className="grid gap-2">
+            <Label htmlFor="role" className="text-sm font-medium">
+              用户角色 <span className="text-destructive">*</span>
+            </Label>
+            <Select value={role} onValueChange={(value) => setRole(value as Role)} required>
+              <SelectTrigger id="role" className="h-10">
+                <SelectValue placeholder="请选择用户角色" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="管理员">管理员</SelectItem>
-                <SelectItem value="操作员">操作员</SelectItem>
-                <SelectItem value="访客">访客</SelectItem>
+                <SelectItem value="user">
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">普通用户</span>
+                    <span className="text-xs text-muted-foreground">基础功能访问权限</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="admin">
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">管理员</span>
+                    <span className="text-xs text-muted-foreground">系统管理和配置权限</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="superadmin">
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">超级管理员</span>
+                    <span className="text-xs text-muted-foreground">完整系统控制权限</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <label htmlFor="form-status" className="block text-sm font-medium mb-1 text-foreground">
-              状态:
-            </label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="选择状态" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="活跃">活跃</SelectItem>
-                <SelectItem value="禁用">禁用</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {localError && <p className="text-red-500 text-sm">{localError}</p>}
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button onClick={handleSubmit}>
-              {user ? "保存更改" : "添加用户"}
-            </Button>
-            <Button variant="outline" onClick={onCancel}>
-              取消
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              不同角色拥有不同的系统访问权限
+            </p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <DialogFooter className="gap-2 pt-6 border-t">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" className="h-10">
+              取消
+            </Button>
+          </DialogClose>
+          <Button
+            type="submit"
+            disabled={isPending || !username.trim() || !email.trim() || (!user && !password)}
+            className="h-10"
+          >
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {user ? '保存更改' : '创建用户'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </div>
   )
 }
 
+// --- Main Component ---
+
 export default function UserManagement() {
-  const { data: usersResponse, isLoading, error } = useUsers()
-  const [showUserForm, setShowUserForm] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [formMessage, setFormMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  
-  const users: User[] = usersResponse?.users || []
-  const errorMessage = error?.message || usersResponse?.error
+  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
 
-  // Mock users for demonstration
-  const mockUsers = [
-    { id: 'U001', email: 'admin@example.com', user_metadata: { username: 'admin' }, role: '管理员', confirmed_at: new Date().toISOString(), created_at: new Date().toISOString(), last_sign_in_at: new Date().toISOString() },
-    { id: 'U002', email: 'user1@example.com', user_metadata: { username: 'user1' }, role: '操作员', confirmed_at: new Date().toISOString(), created_at: new Date().toISOString(), last_sign_in_at: new Date().toISOString() },
-    { id: 'U003', email: 'viewer@example.com', user_metadata: { username: 'viewer' }, role: '访客', confirmed_at: null, created_at: new Date().toISOString(), last_sign_in_at: null },
-  ]
+  const { data: users, isLoading, error } = useUsers()
+  const { mutate: deleteUser } = useDeleteUser()
 
-  const displayUsers = users.length > 0 ? users : mockUsers
-
-  const filteredUsers = displayUsers.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.user_metadata?.username || '').toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter
-    return matchesSearch && matchesRole
-  })
-
-  const handleAddUserClick = () => {
-    setEditingUser(null)
-    setShowUserForm(true)
-    setFormMessage(null)
-  }
-
-  const handleEditUserClick = (user: User) => {
-    setEditingUser(user)
-    setShowUserForm(true)
-    setFormMessage(null)
-  }
-
-  const handleDeleteUser = (userId: string, username: string) => {
-    setFormMessage(null)
-    if (window.confirm(`确定要删除用户 "${username}" 吗？`)) {
-      // 这里应该调用实际的删除 API，现在只是模拟
-      console.log(`Deleting user with ID: ${userId}`)
-      setFormMessage({ type: 'success', text: `用户 "${username}" 已删除。` })
-    } else {
-      setFormMessage({ type: 'error', text: `用户 "${username}" 删除操作已取消。` })
-    }
-    setTimeout(() => setFormMessage(null), 3000)
-  }
-
-  const handleSaveUser = (userData: any) => {
-    if (userData.id) {
-      setFormMessage({ type: 'success', text: `用户 "${userData.username}" 已更新。` })
-    } else {
-      setFormMessage({ type: 'success', text: `用户 "${userData.username}" 已添加。` })
-    }
-    setShowUserForm(false)
-    setEditingUser(null)
-    setTimeout(() => setFormMessage(null), 3000)
-  }
-
-  const handleCancelForm = () => {
-    setShowUserForm(false)
-    setEditingUser(null)
-    setFormMessage(null)
+  const handleDelete = (userId: string) => {
+    deleteUser(userId, {
+      onSuccess: () => toast.success('用户已成功删除！'),
+      onError: (error) => toast.error(`删除失败: ${error.message}`),
+    })
   }
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              系统管理
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">加载用户数据中...</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex justify-center items-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
-  if (errorMessage && users.length === 0) {
+  if (error) {
     return (
-      <div className="p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              系统管理
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8">
-              <AlertCircle className="h-8 w-8 text-destructive" />
-              <p className="mt-2 text-sm text-muted-foreground">{errorMessage}</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="text-center p-8 bg-destructive/10 rounded-lg">
+        <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
+        <h2 className="mt-4 text-xl font-semibold text-destructive">加载用户失败</h2>
+        <p className="mt-2 text-muted-foreground">{error.message}</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* 页面头部 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">系统管理</h1>
-          <p className="text-muted-foreground">用户权限与系统配置管理</p>
+          <h2 className="text-lg font-semibold">用户列表</h2>
+          <p className="text-sm text-muted-foreground">
+            管理系统用户账户和权限设置
+          </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Settings className="h-5 w-5 text-primary" />
-          <span className="text-sm text-muted-foreground">管理模式</span>
-        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              创建用户
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>创建新用户</DialogTitle>
+            </DialogHeader>
+            <UserForm onOpenChange={setCreateDialogOpen} />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {formMessage && (
-        <div className={`p-3 mb-4 rounded-md border ${
-          formMessage.type === 'success' 
-            ? 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800' 
-            : 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800'
-        }`}>
-          {formMessage.text}
-        </div>
-      )}
+      {/* 用户表格 - 使用默认样式 */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>用户名</TableHead>
+              <TableHead className="hidden md:table-cell">邮箱</TableHead>
+              <TableHead>角色</TableHead>
+              <TableHead className="hidden lg:table-cell">创建时间</TableHead>
+              <TableHead className="text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users?.map((user: User) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.username}</TableCell>
+                <TableCell className="hidden md:table-cell">{user.email}</TableCell>
+                <TableCell>
+                  <Badge variant={user.role === 'superadmin' ? 'destructive' : (user.role === 'admin' ? 'default' : 'secondary')}>
+                    {user.role === 'superadmin' ? '超级管理员' : user.role === 'admin' ? '管理员' : '普通用户'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  {dayjs(user.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Dialog open={isEditDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
+                      if (!open) setSelectedUser(undefined);
+                      setEditDialogOpen(open);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          setSelectedUser(user);
+                          setEditDialogOpen(true);
+                        }}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>编辑用户: {selectedUser?.username}</DialogTitle>
+                        </DialogHeader>
+                        {selectedUser && <UserForm onOpenChange={setEditDialogOpen} user={selectedUser} />}
+                      </DialogContent>
+                    </Dialog>
 
-      {showUserForm ? (
-        <UserForm
-          user={editingUser}
-          onSave={handleSaveUser}
-          onCancel={handleCancelForm}
-        />
-      ) : (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                筛选条件
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-4 items-center">
-                <div className="flex-1 min-w-[200px]">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="搜索用户..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            此操作无法撤销。这将永久删除用户 <strong>{user.username}</strong> 的账户。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(user.id)}>
+                            继续删除
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                </div>
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="选择角色" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">所有角色</SelectItem>
-                    <SelectItem value="管理员">管理员</SelectItem>
-                    <SelectItem value="操作员">操作员</SelectItem>
-                    <SelectItem value="访客">访客</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleAddUserClick}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加用户
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                用户列表
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                共 {filteredUsers.length} 个用户
-              </p>
-            </CardHeader>
-            <CardContent>
-              {filteredUsers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Users className="h-8 w-8 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">没有找到匹配的用户</p>
-                </div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>用户</TableHead>
-                        <TableHead>邮箱</TableHead>
-                        <TableHead>角色</TableHead>
-                        <TableHead>创建时间</TableHead>
-                        <TableHead>最后登录</TableHead>
-                        <TableHead>状态</TableHead>
-                        <TableHead className="text-right">操作</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map((user: any) => (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback>
-                                  {user.email.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {user.user_metadata?.username || user.email.split('@')[0]}
-                                </p>
-                                <p className="text-xs text-muted-foreground">ID: {user.id}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Badge variant={user.role === '管理员' ? 'default' : 'secondary'}>
-                              {user.role || '用户'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <p>{new Date(user.created_at).toLocaleDateString()}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(user.created_at).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {user.last_sign_in_at ? (
-                              <div className="text-sm">
-                                <p>{new Date(user.last_sign_in_at).toLocaleDateString()}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(user.last_sign_in_at).toLocaleTimeString()}
-                                </p>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">从未登录</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={user.confirmed_at ? 'default' : 'destructive'}>
-                              {user.confirmed_at ? '活跃' : '待激活'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleEditUserClick(user)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => handleDeleteUser(user.id, user.user_metadata?.username || user.email)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
+      {users?.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>暂无用户数据</p>
+        </div>
       )}
     </div>
   )
-} 
+}

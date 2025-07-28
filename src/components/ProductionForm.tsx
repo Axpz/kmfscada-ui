@@ -18,10 +18,19 @@ interface ProductionFormProps {
 }
 
 export default function ProductionForm({ item, onSuccess, onCancel }: ProductionFormProps) {
-  const [formData, setFormData] = useState<Omit<ProductionData, 'id' | 'created_at' | 'updated_at'>>({
-    value: item?.value || 0,
-    unit: item?.unit || '',
-    description: item?.description || '',
+  const [formData, setFormData] = useState<ProductionData>({
+    production_line_id: item?.production_line_id || '1',
+    production_batch_number: item?.production_batch_number || '',
+    material_batch_number: item?.material_batch_number || '',
+    body_temperatures: item?.body_temperatures || [180, 185, 190, 195],
+    flange_temperatures: item?.flange_temperatures || [160, 165],
+    mold_temperatures: item?.mold_temperatures || [200, 210],
+    screw_motor_speed: item?.screw_motor_speed || 75,
+    traction_motor_speed: item?.traction_motor_speed || 10,
+    real_time_diameter: item?.real_time_diameter || 22.5,
+    total_length_produced: item?.total_length_produced || 1000,
+    fluoride_ion_concentration: item?.fluoride_ion_concentration || 1.5,
+    main_spindle_current: item?.main_spindle_current || 20,
   })
 
   const createMutation = useCreateProductionData()
@@ -35,8 +44,9 @@ export default function ProductionForm({ item, onSuccess, onCancel }: Production
     e.preventDefault()
     
     try {
-      if (isEditing && item?.id) {
-        await updateMutation.mutateAsync({ id: item.id, data: formData })
+      if (isEditing && item) {
+        // 假设我们有一个 ID 字段用于更新
+        await updateMutation.mutateAsync({ id: '1', data: formData })
       } else {
         await createMutation.mutateAsync(formData)
       }
@@ -49,9 +59,12 @@ export default function ProductionForm({ item, onSuccess, onCancel }: Production
   const handleChange = (field: keyof typeof formData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'value' ? parseFloat(e.target.value) || 0 : e.target.value,
+      [field]: ['screw_motor_speed', 'traction_motor_speed', 'real_time_diameter', 'main_spindle_current', 'fluoride_ion_concentration'].includes(field) 
+        ? parseFloat(value) || 0 
+        : value,
     }))
   }
 
@@ -86,61 +99,126 @@ export default function ProductionForm({ item, onSuccess, onCancel }: Production
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="value" className="flex items-center gap-2">
+                <Label htmlFor="production_batch_number" className="flex items-center gap-2">
                   <Hash className="h-4 w-4" />
-                  数值
+                  生产批次号
                 </Label>
                 <Input
-                  type="number"
-                  id="value"
-                  value={formData.value}
-                  onChange={handleChange('value')}
-                  step="0.01"
+                  type="text"
+                  id="production_batch_number"
+                  value={formData.production_batch_number}
+                  onChange={handleChange('production_batch_number')}
                   required
-                  placeholder="请输入数值"
+                  placeholder="请输入生产批次号"
                   className="transition-all duration-200 focus:scale-[1.02]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  输入生产数据的具体数值
+                  输入生产批次的唯一标识号
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="unit" className="flex items-center gap-2">
+                <Label htmlFor="material_batch_number" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  单位
+                  物料批次号
                 </Label>
                 <Input
                   type="text"
-                  id="unit"
-                  value={formData.unit}
-                  onChange={handleChange('unit')}
+                  id="material_batch_number"
+                  value={formData.material_batch_number}
+                  onChange={handleChange('material_batch_number')}
                   required
-                  placeholder="例如: kW, °C, mg/L"
+                  placeholder="请输入物料批次号"
                   className="transition-all duration-200 focus:scale-[1.02]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  指定数值的计量单位
+                  输入物料批次的唯一标识号
                 </p>
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="screw_motor_speed" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  螺杆电机转速 (rpm)
+                </Label>
+                <Input
+                  type="number"
+                  id="screw_motor_speed"
+                  value={formData.screw_motor_speed}
+                  onChange={handleChange('screw_motor_speed')}
+                  step="0.1"
+                  placeholder="请输入螺杆电机转速"
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="traction_motor_speed" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  牵引机速度 (m/min)
+                </Label>
+                <Input
+                  type="number"
+                  id="traction_motor_speed"
+                  value={formData.traction_motor_speed}
+                  onChange={handleChange('traction_motor_speed')}
+                  step="0.1"
+                  placeholder="请输入牵引机速度"
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="real_time_diameter" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  实时直径 (mm)
+                </Label>
+                <Input
+                  type="number"
+                  id="real_time_diameter"
+                  value={formData.real_time_diameter}
+                  onChange={handleChange('real_time_diameter')}
+                  step="0.001"
+                  placeholder="请输入实时直径"
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="main_spindle_current" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  主轴电流 (A)
+                </Label>
+                <Input
+                  type="number"
+                  id="main_spindle_current"
+                  value={formData.main_spindle_current}
+                  onChange={handleChange('main_spindle_current')}
+                  step="0.1"
+                  placeholder="请输入主轴电流"
+                  className="transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="description" className="flex items-center gap-2">
+              <Label htmlFor="fluoride_concentration" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                描述
+                氟离子浓度 (mg/L)
               </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={handleChange('description')}
-                rows={4}
-                required
-                placeholder="请详细描述这个生产数据的用途和含义..."
-                className="transition-all duration-200 focus:scale-[1.01] resize-none"
+              <Input
+                type="number"
+                id="fluoride_concentration"
+                value={formData.fluoride_ion_concentration}
+                onChange={handleChange('fluoride_ion_concentration')}
+                step="0.01"
+                placeholder="请输入氟离子浓度"
+                className="transition-all duration-200 focus:scale-[1.02]"
               />
               <p className="text-xs text-muted-foreground">
-                提供详细的数据描述，便于后续查看和管理
+                输入氟离子浓度值，用于水质监控
               </p>
             </div>
 

@@ -1,0 +1,24 @@
+export default function HomePage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold">KFM·Scada 系统</h1>
+        <p className="text-gray-600">工业监控和数据采集系统</p>
+        <div className="space-x-4">
+          <a 
+            href="/login"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            登录
+          </a>
+          <a 
+            href="/dashboard"
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            仪表板
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}

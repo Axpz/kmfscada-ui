@@ -12,6 +12,7 @@ export { default as VisualizationCenter } from './VisualizationCenter'
 
 // 布局组件
 export { default as AppLayout } from './layout/AppLayout'
+export { default as Header } from './layout/Header'
 export { Sidebar } from './layout/Sidebar'
 
 // UI 组件
@@ -29,4 +30,5 @@ export * from './ui/logo';
 export * from './ui/select';
 export * from './ui/sheet';
 export * from './ui/table';
+export * from './ui/tabs';
 export * from './ui/textarea'; 

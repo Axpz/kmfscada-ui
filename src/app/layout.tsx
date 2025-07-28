@@ -1,64 +1,49 @@
 import React from 'react'
 import type { Metadata, Viewport } from 'next'
+import { Inter, JetBrains_Mono as JetBrainsMono } from 'next/font/google'
+import { cn } from '@/lib/utils'
+import { AuthProvider } from '@/contexts'
+import QueryProvider from '@/providers/QueryProvider'
+import { ThemeProvider } from '@/providers/theme-provider'
+import { Toaster } from 'sonner'
 import './globals.css'
-import { AuthProvider } from '../contexts'
-import QueryProvider from '../providers/QueryProvider'
-import LoadingSpinner from '../components/LoadingSpinner'
+
+const fontSans = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
+
+const fontMono = JetBrainsMono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+})
 
 export const metadata: Metadata = {
   title: {
     default: 'KFM·Scada',
     template: '%s | KFM·Scada'
   },
-  description: 'Industrial monitoring and data acquisition system for real-time process control and automation',
-  keywords: ['SCADA', 'Industrial Control', 'Automation', 'Monitoring', 'Data Acquisition'],
-  authors: [{ name: 'SCADA Team' }],
-  creator: 'SCADA Team',
-  publisher: 'KFM·Scada',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+  description: 'A modern, real-time industrial monitoring and data acquisition system.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'),
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: '/',
     title: 'KFM·Scada',
-    description: 'Industrial monitoring and data acquisition system',
+    description: 'A modern, real-time industrial monitoring and data acquisition system.',
     siteName: 'KFM·Scada',
-    images: [
-      {
-        url: '/kfm-scada-logo-simple.svg',
-        width: 200,
-        height: 50,
-        alt: 'KFM·Scada Logo',
-      },
-    ],
+    images: [{ url: '/kfm-scada-logo-simple.svg' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'KFM·Scada',
-    description: 'Industrial monitoring and data acquisition system',
+    description: 'A modern, real-time industrial monitoring and data acquisition system.',
     images: ['/kfm-scada-logo-simple.svg'],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
   icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: '/favicon.ico',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/apple-touch-icon.svg',
   },
   manifest: '/site.webmanifest',
 }
@@ -69,7 +54,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A0F1E' }, // Slate 950
   ],
 }
 
@@ -80,23 +65,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <title>KFM·Scada</title>
-        <meta name="description" content="Industrial monitoring and data acquisition system for real-time process control and automation" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <QueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </QueryProvider>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable,
+          fontMono.variable
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
-} 
+}

@@ -25,6 +25,7 @@ build
 *.pem
 
 .vscode
+.kiro
 
 node_modules
 

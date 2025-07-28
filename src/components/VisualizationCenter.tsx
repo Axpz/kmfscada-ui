@@ -82,21 +82,30 @@ const ChartCard = ({
   </Card>
 )
 
-export default function VisualizationCenter() {
+interface VisualizationCenterProps {
+  showTitle?: boolean
+}
+
+export default function VisualizationCenter({ showTitle = false }: VisualizationCenterProps) {
   const [timeRange, setTimeRange] = useState('24h')
   const [chartType, setChartType] = useState('all')
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <Eye className="h-8 w-8" />
-            可视化中心
-          </h1>
-          <p className="text-muted-foreground">数据可视化与分析展示</p>
+      {showTitle && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <Eye className="h-8 w-8" />
+              可视化中心
+            </h1>
+            <p className="text-muted-foreground">数据可视化与分析展示</p>
+          </div>
         </div>
+      )}
+      
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[120px]">
