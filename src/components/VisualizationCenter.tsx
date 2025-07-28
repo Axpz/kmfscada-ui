@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { ChartCard } from './ui/chart-card'
 import { 
   BarChart3, 
   LineChart, 
@@ -35,51 +36,6 @@ const ChartPlaceholder = ({
     <h3 className="text-lg font-semibold mb-2">{title}</h3>
     <p className="text-sm text-center max-w-xs">{description}</p>
   </div>
-)
-
-// Chart card with actions
-const ChartCard = ({ 
-  title, 
-  subtitle, 
-  icon: Icon, 
-  iconColor, 
-  children,
-  actions = true
-}: {
-  title: string
-  subtitle: string
-  icon: React.ElementType
-  iconColor: string
-  children: React.ReactNode
-  actions?: boolean
-}) => (
-  <Card className="group hover:shadow-lg transition-shadow">
-    <CardHeader>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon className={`h-5 w-5 ${iconColor}`} />
-          <CardTitle className="text-lg">{title}</CardTitle>
-        </div>
-        {actions && (
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="ghost" size="sm">
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Download className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-muted-foreground">{subtitle}</p>
-    </CardHeader>
-    <CardContent>
-      {children}
-    </CardContent>
-  </Card>
 )
 
 interface VisualizationCenterProps {

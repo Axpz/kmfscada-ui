@@ -1,9 +1,9 @@
 'use client'
 
 import VisualizationLayout from '@/components/layout/VisualizationLayout'
-import DataStatisticsAnalysis from '@/components/DataStatisticsAnalysis'
+import VisualizationStatisticsAnalysis from '@/components/VisualizationStatisticsAnalysis'
 import { Suspense } from 'react'
-import { Loader2 } from 'lucide-react'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 const VisualizationAnalysisPage = () => {
   return (
@@ -11,17 +11,22 @@ const VisualizationAnalysisPage = () => {
       title="统计分析" 
       description="历史数据分析和趋势统计"
     >
-      <Suspense fallback={<Loader />}>
-        <DataStatisticsAnalysis />
+      <Suspense fallback={<LoadingSpinner />}>
+        <div className="space-y-6">
+          {/* 页面头部 */}
+          <div>
+            <h2 className="text-lg font-semibold">统计分析</h2>
+            <p className="text-sm text-muted-foreground">
+              历史数据分析和趋势统计
+            </p>
+          </div>
+
+          {/* 主要内容 */}
+          <VisualizationStatisticsAnalysis />
+        </div>
       </Suspense>
     </VisualizationLayout>
   )
 }
-
-const Loader = () => (
-  <div className="flex justify-center items-center h-48">
-    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-  </div>
-)
 
 export default VisualizationAnalysisPage

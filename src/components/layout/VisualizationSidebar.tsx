@@ -41,12 +41,7 @@ export default function VisualizationSidebar({ className }: VisualizationSidebar
 
   return (
     <div className={cn("w-64 hidden md:flex md:flex-col", className)}>
-      <div className="flex items-center justify-between h-16 px-4 border-b">
-        <div className="flex items-center gap-2 font-semibold">
-          <BarChart3 className="h-6 w-6" />
-          <span>可视化中心</span>
-        </div>
-      </div>
+
       
       <nav className="flex-1 space-y-1 p-2">
         <div className="space-y-1">

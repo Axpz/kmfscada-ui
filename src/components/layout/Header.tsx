@@ -45,6 +45,7 @@ export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps
   
   // 检查当前路径是否匹配导航项
   const isLinkActive = (href: string) => {
+    console.log("href", href)
     if (href === '/management/users') {
       return pathname.startsWith('/management');
     }
@@ -53,6 +54,9 @@ export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps
     }
     if (href === '/alarms') {
       return pathname.startsWith('/alarms');
+    }
+    if (href === '/export') {
+      return pathname.startsWith('/export');
     }
     return pathname === href;
   };
