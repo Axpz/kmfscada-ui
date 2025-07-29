@@ -8,12 +8,6 @@ export default function HomePage() {
 
   const handleNavigate = (destination: string) => {
     switch (destination) {
-      case 'login':
-        router.push('/login')
-        break
-      case 'dashboard':
-        router.push('/dashboard')
-        break
       default:
         router.push(`/${destination}`)
     }

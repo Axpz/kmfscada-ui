@@ -13,10 +13,7 @@ import {
   Map, 
   TrendingUp, 
   Eye, 
-  RefreshCw, 
-  Download,
-  Maximize2,
-  Settings
+  RefreshCw
 } from 'lucide-react'
 
 // Chart placeholder component
@@ -61,30 +58,72 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
         </div>
       )}
       
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1h">1小时</SelectItem>
-              <SelectItem value="24h">24小时</SelectItem>
-              <SelectItem value="7d">7天</SelectItem>
-              <SelectItem value="30d">30天</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
-          </Button>
+      {/* 统一控制面板 - 与DataStatisticsAnalysis保持一致 */}
+      <div className="flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg border">
+          {/* 左侧：选择器组 */}
+          <div className="flex flex-wrap items-center gap-3 min-w-0">
+            {/* 时间范围选择器 */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                时间范围
+              </span>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h">1小时</SelectItem>
+                  <SelectItem value="24h">24小时</SelectItem>
+                  <SelectItem value="7d">7天</SelectItem>
+                  <SelectItem value="30d">30天</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 图表类型选择器 */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                图表类型
+              </span>
+              <Select value={chartType} onValueChange={setChartType}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="production">生产数据</SelectItem>
+                  <SelectItem value="quality">质量指标</SelectItem>
+                  <SelectItem value="equipment">设备状态</SelectItem>
+                  <SelectItem value="energy">能耗分析</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* 右侧：状态和操作 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                系统状态
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">实时更新</Badge>
+                <Badge variant="secondary">12个图表</Badge>
+                <Button variant="outline" size="sm" className="h-8">
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  刷新
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/20">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4 bg-muted/40">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">活跃图表</p>
@@ -135,33 +174,7 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
         </Card>
       </div>
 
-      {/* Filter Controls */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">图表类型:</span>
-              <Select value={chartType} onValueChange={setChartType}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="production">生产数据</SelectItem>
-                  <SelectItem value="quality">质量指标</SelectItem>
-                  <SelectItem value="equipment">设备状态</SelectItem>
-                  <SelectItem value="energy">能耗分析</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline">实时更新</Badge>
-              <Badge variant="secondary">12个图表</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

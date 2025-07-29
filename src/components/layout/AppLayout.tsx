@@ -30,7 +30,7 @@ const mainNavigationItems: { href: string; label: string; icon: React.ElementTyp
   { href: '/dashboard', label: '数据看板', icon: LayoutDashboard, requiredRole: null },
   { href: '/workshop', label: '车间大屏', icon: Monitor, requiredRole: null },
   { href: '/visualization', label: '可视化中心', icon: BarChart3, requiredRole: null },
-  { href: '/alarms', label: '告警中心', icon: Bell, requiredRole: null },
+  { href: '/alarms/history', label: '告警中心', icon: Bell, requiredRole: null },
   { href: '/export', label: '数据导出', icon: Download, requiredRole: ['superadmin'] },
   { href: '/management/users', label: '系统管理', icon: Users, requiredRole: ['superadmin'] },
 ]

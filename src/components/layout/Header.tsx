@@ -17,7 +17,7 @@ const mainNavLinks = [
   { href: '/dashboard', label: '数据看板' },
   { href: '/workshop', label: '车间大屏' },
   { href: '/visualization', label: '可视化中心' },
-  { href: '/alarms', label: '告警中心', requiredRole: ['admin', 'superadmin'] as Role[] },
+  { href: '/alarms/history', label: '告警中心', requiredRole: ['admin', 'superadmin'] as Role[] },
   { href: '/export', label: '数据导出', requiredRole: ['superadmin'] as Role[] },
   { href: '/management/users', label: '系统管理', requiredRole: ['superadmin'] as Role[] }, 
 ];
