@@ -15,9 +15,9 @@ const VisualizationOverviewPage = () => {
         <div className="space-y-6">
           {/* 页面头部 */}
           <div>
-            <h2 className="text-lg font-semibold">可视化概览</h2>
+            <h2 className="text-lg font-semibold">生产线概览</h2>
             <p className="text-sm text-muted-foreground">
-              实时数据展示和图表概览
+              生产线数据概览
             </p>
           </div>
 

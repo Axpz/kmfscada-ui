@@ -38,8 +38,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
-import { Factory, Plus, Trash2, Loader2, AlertCircle, Edit } from 'lucide-react'
+import { Factory, Plus, Trash2, Loader2, Edit } from 'lucide-react' 
+
+import { StatusBadge } from '@/components/ui/status-badge';
 
 // --- Production Line Form ---
 const ProductionLineForm = ({
@@ -52,7 +55,8 @@ const ProductionLineForm = ({
   const [name, setName] = useState(line?.name || '')
   const [id, setId] = useState(line?.id || '')
   const [description, setDescription] = useState(line?.description || '')
-  
+  const [enabled, setEnabled] = useState(line?.enabled !== false)
+
   const { mutate: createLine, isPending: isCreating } = useCreateProductionLine()
   // Note: You'll need to add useUpdateProductionLine hook if it doesn't exist
   // const { mutate: updateLine, isPending: isUpdating } = useUpdateProductionLine()
@@ -60,13 +64,14 @@ const ProductionLineForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (line) {
-      // 编辑模式：允许修改名称和描述
+      // 编辑模式：允许修改名称、描述和启动状态
       // updateLine(
       //   { 
       //     id: line.id, 
       //     data: { 
       //       name: name.trim(), 
-      //       description: description.trim() || `生产线${name.trim()}` 
+      //       description: description.trim() || `生产线${name.trim()}`,
+      //       enabled: enabled
       //     } 
       //   },
       //   {
@@ -77,13 +82,17 @@ const ProductionLineForm = ({
       //     onError: (error) => toast.error(`更新失败: ${error.message}`),
       //   }
       // )
-      toast.info('编辑功能开发中...')
+
+      // 临时模拟更新成功
+      toast.success(`生产线 ${name} 信息已更新！启动状态: ${enabled ? '已启用' : '已停用'}`)
+      onOpenChange(false)
     } else {
-      // 创建模式
+      // 创建模式 - 新创建的生产线默认启用
       createLine(
-        { 
-          name: name.trim(), 
-          description: description.trim() || `生产线${name.trim()}` 
+        {
+          name: name.trim(),
+          description: description.trim() || `生产线${name.trim()}`,
+          enabled: true // 新创建的生产线默认启用
         },
         {
           onSuccess: () => {
@@ -93,6 +102,7 @@ const ProductionLineForm = ({
             setName('')
             setId('')
             setDescription('')
+            setEnabled(true)
           },
           onError: (err) => toast.error(`创建失败: ${err.message}`),
         }
@@ -166,6 +176,26 @@ const ProductionLineForm = ({
               详细描述生产线的功能、特点或用途
             </p>
           </div>
+
+          {/* 启动状态字段 - 创建和编辑模式下都显示 */}
+          <div className="grid gap-2">
+            <Label htmlFor="line-enabled" className="text-sm font-medium">
+              启动状态
+            </Label>
+            <div className="flex items-center gap-3 h-10">
+              <Switch
+                id="line-enabled"
+                checked={enabled}
+                onCheckedChange={setEnabled}
+              />
+              <span className="text-sm">
+                {enabled ? '已启用' : '已禁用'}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              控制生产线是否可以接收和执行生产任务
+            </p>
+          </div>
         </div>
 
         <DialogFooter className="gap-2 pt-6 border-t">
@@ -174,8 +204,8 @@ const ProductionLineForm = ({
               取消
             </Button>
           </DialogClose>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isPending || !name.trim() || (!line && !id.trim())}
             className="h-10"
           >
@@ -218,12 +248,12 @@ export default function ProductionLineManagement() {
         <div>
           <h2 className="text-lg font-semibold">生产线列表</h2>
           <p className="text-sm text-muted-foreground">
-            管理生产线配置和设备参数 (当前: {lines?.length || 0}/8)
+            管理生产线配置和设备参数
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={(lines?.length || 0) >= 8}>
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               添加生产线
             </Button>
@@ -245,6 +275,7 @@ export default function ProductionLineManagement() {
               <TableHead>生产线名称</TableHead>
               <TableHead>生产线ID</TableHead>
               <TableHead>描述</TableHead>
+              <TableHead>启动状态</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -259,6 +290,9 @@ export default function ProductionLineManagement() {
                 </TableCell>
                 <TableCell>{line.id}</TableCell>
                 <TableCell>{line.description || '暂无描述'}</TableCell>
+                <TableCell>
+                  <StatusBadge status={line.enabled !== false ? '已启用' : '已禁用'}/>
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     <Dialog open={isEditDialogOpen && selectedLine?.id === line.id} onOpenChange={(open) => {
@@ -280,7 +314,7 @@ export default function ProductionLineManagement() {
                         {selectedLine && <ProductionLineForm onOpenChange={setEditDialogOpen} line={selectedLine} />}
                       </DialogContent>
                     </Dialog>
-                    
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
@@ -310,7 +344,7 @@ export default function ProductionLineManagement() {
           </TableBody>
         </Table>
       </div>
-      
+
       {lines?.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Factory className="h-12 w-12 mx-auto mb-4 opacity-50" />

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { AlarmConfirmationBadge } from '@/components/ui/status-badge'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -21,23 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
 import { toast } from 'sonner'
-import { formatDistanceToNow, format } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
+
 import dayjs from 'dayjs'
 import {
   Loader2,
   AlertCircle,
-  CheckCircle,
   Bell,
-  Filter,
   X,
   Search,
 } from 'lucide-react'
@@ -110,12 +104,30 @@ export default function AlarmCenter() {
     })
   }
 
-  const getStatusBadge = (acknowledged: boolean) => {
-    return (
-      <Badge variant={acknowledged ? 'default' : 'destructive'}>
-        {acknowledged ? '已确认' : '未确认'}
-      </Badge>
-    )
+  // 添加加载状态管理
+  const [acknowledgingAlarms, setAcknowledgingAlarms] = useState<Set<string>>(new Set())
+
+  const handleAcknowledgeWithLoading = async (alarmId: string) => {
+    setAcknowledgingAlarms(prev => new Set(prev).add(alarmId))
+
+    acknowledgeAlarm(alarmId, {
+      onSuccess: () => {
+        toast.success(`报警 #${alarmId} 已确认。`)
+        setAcknowledgingAlarms(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(alarmId)
+          return newSet
+        })
+      },
+      onError: (err) => {
+        toast.error(`操作失败: ${err.message}`)
+        setAcknowledgingAlarms(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(alarmId)
+          return newSet
+        })
+      },
+    })
   }
 
   if (isLoading) {
@@ -216,7 +228,7 @@ export default function AlarmCenter() {
               </TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
-                  <span className="whitespace-nowrap">状态</span>
+                  <span className="whitespace-nowrap">确认状态</span>
                   <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
                     <SelectTrigger className="h-8 w-32 !text-xs">
                       <SelectValue />
@@ -227,17 +239,12 @@ export default function AlarmCenter() {
                       <SelectItem value="acknowledged">已确认</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <span className="whitespace-nowrap">操作</span>
                   {hasActiveFilters && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={clearAllFilters}
-                      className="h-6 px-2"
+                      className="h-6 px-2 ml-2"
                       title="清除所有过滤条件"
                     >
                       <X className="h-3 w-3" />
@@ -254,20 +261,13 @@ export default function AlarmCenter() {
                 <TableCell>{alarm.message}</TableCell>
                 <TableCell className="hidden sm:table-cell">{alarm.current_value.toFixed(3)}</TableCell>
                 <TableCell className="hidden md:table-cell">{dayjs(alarm.timestamp).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
-                <TableCell>{getStatusBadge(alarm.acknowledged)}</TableCell>
                 <TableCell>
-                  {!alarm.acknowledged ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAcknowledge(alarm.id)}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      确认
-                    </Button>
-                  ) : (
-                    <span>已处理</span>
-                  )}
+                  <AlarmConfirmationBadge
+                    isConfirmed={alarm.acknowledged}
+                    loading={acknowledgingAlarms.has(alarm.id)}
+                    onConfirm={() => handleAcknowledgeWithLoading(alarm.id)}
+                    size="sm"
+                  />
                 </TableCell>
               </TableRow>
             ))}

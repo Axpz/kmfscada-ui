@@ -165,7 +165,7 @@ const UtilizationPieChart = ({
   return (
     <ChartCard
       title="设备利用率分析"
-      subtitle="分析设备在选定时间范围内的运行状态分布"
+      subtitle="设备利用率 = 运行时间/30天；以月为运行单位，如果生产了一个月则设备利用率为100%"
       icon={Activity}
       iconColor="text-green-500"
     >
@@ -196,19 +196,8 @@ const UtilizationPieChart = ({
             {/* 时间范围选择器 */}
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                时间范围
+                时间范围30天
               </Label>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1h">1小时</SelectItem>
-                  <SelectItem value="24h">24小时</SelectItem>
-                  <SelectItem value="7d">7天</SelectItem>
-                  <SelectItem value="30d">30天</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 

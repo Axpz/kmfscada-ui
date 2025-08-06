@@ -63,6 +63,7 @@ import {
   Trash2,
   AlertCircle,
 } from 'lucide-react'
+import { StatusBadge } from '@/components/ui/status-badge'
 
 // --- Sub-components ---
 
@@ -326,9 +327,7 @@ export default function UserManagement() {
                 <TableCell className="font-medium">{user.username}</TableCell>
                 <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant={user.role === 'superadmin' ? 'destructive' : (user.role === 'admin' ? 'default' : 'secondary')}>
-                    {user.role === 'superadmin' ? '超级管理员' : user.role === 'admin' ? '管理员' : '普通用户'}
-                  </Badge>
+                  <StatusBadge status={user.role.toString()} />
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {dayjs(user.created_at).format('YYYY-MM-DD HH:mm:ss')}

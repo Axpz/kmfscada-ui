@@ -37,6 +37,7 @@ export interface ProductionLine {
   id: string; // 通常是 1-8 的数字或 UUID
   name: string; // 例如 "生产线1"
   description?: string;
+  enabled?: boolean; // 生产线启用状态，默认为 true
 }
 
 /**

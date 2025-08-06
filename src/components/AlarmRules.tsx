@@ -57,6 +57,7 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
+import { StatusBadge } from '@/components/ui/status-badge'
 
 // Mock监控参数选项
 const MONITOR_PARAMETERS = [
@@ -220,9 +221,7 @@ const AlarmRuleForm = ({
               checked={formData.enabled}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, enabled: checked }))}
             />
-            <Badge variant={formData.enabled ? 'default' : 'secondary'}>
-              {formData.enabled ? '启用' : '禁用'}
-            </Badge>
+              {formData.enabled ? '已启用' : '已禁用'}
           </div>
           <p className="text-xs text-muted-foreground">
             启用后该规则将生效并触发报警
@@ -398,7 +397,7 @@ export default function AlarmRules() {
               <TableHead>监控参数</TableHead>
               <TableHead>下限值</TableHead>
               <TableHead>上限值</TableHead>
-              <TableHead>状态</TableHead>
+              <TableHead>启用状态</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -438,9 +437,7 @@ export default function AlarmRules() {
                   {rule.upper_limit.toFixed(3)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={rule.enabled ? 'default' : 'secondary'}>
-                    {rule.enabled ? '启用' : '禁用'}
-                  </Badge>
+                  <StatusBadge status={rule.enabled ? '已启用' : '已禁用'} />
                 </TableCell>
                 <TableCell>
                   {dayjs(rule.created_at).format('YYYY-MM-DD HH:mm:ss')}

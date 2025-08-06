@@ -11,11 +11,13 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts';
 import { Role } from '@/types';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { AlarmNotification } from '@/components/ui/alarm-notification';
+import { useAlarmNotification } from '@/hooks/useAlarmNotification';
 
 // 主导航链接配置
 const mainNavLinks = [
   { href: '/dashboard', label: '数据看板' },
-  { href: '/workshop', label: '车间大屏' },
+  // { href: '/workshop', label: '车间大屏' },
   { href: '/visualization', label: '可视化中心' },
   { href: '/alarms/history', label: '告警中心', requiredRole: ['admin', 'superadmin'] as Role[] },
   { href: '/export', label: '数据导出', requiredRole: ['superadmin'] as Role[] },
@@ -30,6 +32,7 @@ interface HeaderProps {
 export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps) {
   const { hasRole } = useAuth();
   const pathname = usePathname();
+  const { alarms, isLoading: alarmsLoading } = useAlarmNotification();
 
   // 根据用户权限过滤主导航项
   const getFilteredMainNavLinks = () => {
@@ -112,8 +115,12 @@ export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps
           })}
         </nav>
 
-        {/* Theme Toggle and User Menu */}
+        {/* Alarm Notification, Theme Toggle and User Menu */}
         <div className="flex items-center space-x-2">
+          <AlarmNotification 
+            alarms={alarms} 
+            isLoading={alarmsLoading} 
+          />
           <ThemeToggle />
           <UserMenu />
         </div>

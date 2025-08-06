@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import type { ProductionDataPoint, User, Role, AlarmRecord, DiameterAlarmConfig } from '../types'
-import { 
+import {
   generateMockProductionData,
   generateMockUsers,
   generateMockAlarmHistory,
@@ -92,14 +92,14 @@ export function useCreateUser() {
       if (USE_MOCK_DATA) {
         await mockDelay(600)
         // 模拟创建成功
-        return { 
-          success: true, 
-          user: { 
-            id: Date.now().toString(), 
+        return {
+          success: true,
+          user: {
+            id: Date.now().toString(),
             ...userData,
             username: userData.username || userData.email.split('@')[0],
-            created_at: new Date().toISOString() 
-          } 
+            created_at: new Date().toISOString()
+          }
         }
       }
       const { data } = await apiClient.post('/users', userData)
@@ -211,7 +211,7 @@ export function useProductionLines() {
           id: `${i + 1}`,
           name: `生产线${i + 1}`,
           description: `第${i + 1}号生产线`,
-          status: Math.random() > 0.2 ? 'running' : 'stopped',
+          enabled: i + 1 > 4,
         }))
       }
       const { data } = await apiClient.get('/production-lines')
@@ -223,17 +223,17 @@ export function useProductionLines() {
 export function useCreateProductionLine() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (lineData: { name: string; description?: string }) => {
+    mutationFn: async (lineData: { name: string; description?: string; enabled: boolean }) => {
       if (USE_MOCK_DATA) {
         await mockDelay(600)
-        return { 
-          success: true, 
-          line: { 
-            id: Date.now().toString(), 
+        return {
+          success: true,
+          line: {
+            id: Date.now().toString(),
             ...lineData,
             status: 'stopped',
-            created_at: new Date().toISOString() 
-          } 
+            created_at: new Date().toISOString()
+          }
         }
       }
       const { data } = await apiClient.post('/production-lines', lineData)
@@ -268,7 +268,7 @@ export function useExportHistory() {
           const startDate = new Date(Date.now() - (i + 7) * 86400000)
           const endDate = new Date(Date.now() - i * 86400000)
           const status = ['completed', 'processing', 'failed'][Math.floor(Math.random() * 3)] as 'completed' | 'processing' | 'failed'
-          
+
           return {
             id: `export-${i + 1}`,
             filename: `production_data_${endDate.toISOString().split('T')[0]}.xlsx`,
@@ -304,14 +304,14 @@ export function useCreateExportTask() {
     mutationFn: async (exportConfig: any) => {
       if (USE_MOCK_DATA) {
         await mockDelay(800)
-        return { 
-          success: true, 
-          task: { 
-            id: Date.now().toString(), 
+        return {
+          success: true,
+          task: {
+            id: Date.now().toString(),
             ...exportConfig,
             status: 'processing',
-            created_at: new Date().toISOString() 
-          } 
+            created_at: new Date().toISOString()
+          }
         }
       }
       const { data } = await apiClient.post('/exports', exportConfig)
@@ -327,13 +327,13 @@ export function useCreateProductionData() {
     mutationFn: async (productionData: Partial<ProductionDataPoint>) => {
       if (USE_MOCK_DATA) {
         await mockDelay(600)
-        return { 
-          success: true, 
-          data: { 
-            id: Date.now().toString(), 
+        return {
+          success: true,
+          data: {
+            id: Date.now().toString(),
             ...productionData,
-            timestamp: new Date().toISOString() 
-          } 
+            timestamp: new Date().toISOString()
+          }
         }
       }
       const { data } = await apiClient.post('/production', productionData)
@@ -357,4 +357,3 @@ export function useUpdateProductionData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['production-data'] }),
   })
 }
- 

@@ -26,9 +26,9 @@ interface NavItem {
 const visualizationNavItems: NavItem[] = [
   {
     href: '/visualization',
-    label: '可视化概览',
+    label: '生成线概览',
     icon: Eye,
-    description: '实时数据展示和图表概览',
+    description: '生产线数据概览',
     requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
   },
   {
@@ -50,6 +50,13 @@ const visualizationNavItems: NavItem[] = [
         label: '设备利用率分析',
         icon: Cpu,
         description: '设备运行效率和利用率统计分析',
+        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      },
+      {
+        href: '/visualization/analysis/energy-consumption',
+        label: '能耗分析',
+        icon: AlertTriangle,
+        description: '能耗统计分析',
         requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
       },
       {
@@ -177,7 +184,7 @@ export default function VisualizationSidebar({ className }: VisualizationSidebar
   }
 
   return (
-    <div className={cn("w-64 hidden md:flex md:flex-col", className)}>
+    <div className={cn("w-56 hidden md:flex md:flex-col", className)}>
       <nav className="flex-1 space-y-1 p-2">
         <div className="space-y-1">
           {filteredNavItems.map(item => renderNavItem(item))}

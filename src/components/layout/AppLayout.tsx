@@ -28,7 +28,7 @@ interface AppLayoutProps {
 // 主要功能导航项
 const mainNavigationItems: { href: string; label: string; icon: React.ElementType; requiredRole: Role[] | null }[] = [
   { href: '/dashboard', label: '数据看板', icon: LayoutDashboard, requiredRole: null },
-  { href: '/workshop', label: '车间大屏', icon: Monitor, requiredRole: null },
+  // { href: '/workshop', label: '车间大屏', icon: Monitor, requiredRole: null },
   { href: '/visualization', label: '可视化中心', icon: BarChart3, requiredRole: null },
   { href: '/alarms/history', label: '告警中心', icon: Bell, requiredRole: null },
   { href: '/export', label: '数据导出', icon: Download, requiredRole: ['superadmin'] },
@@ -109,7 +109,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen w-full flex">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 flex-col transition-transform duration-300 ease-in-out md:flex',
+          'fixed inset-y-0 left-0 z-50 w-48 lg:w-56 xl:w-64 flex-col transition-transform duration-300 ease-in-out md:flex',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -148,7 +148,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300 ease-in-out",
-        sidebarOpen ? "md:ml-64" : "md:ml-0"
+        sidebarOpen ? "md:ml-56" : "md:ml-0"
       )}>
         <Header
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}

@@ -3,7 +3,7 @@
 import React from 'react'
 import { useExportHistory } from '@/hooks/useApi'
 import { ExportTask } from '@/types'
-import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/ui/status-badge'
 import {
   Table,
   TableBody,
@@ -12,13 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'
 import {
@@ -28,55 +33,28 @@ import {
   AlertCircle,
   Loader2,
   History,
+  ChevronDown,
 } from 'lucide-react'
 
 export default function ExportHistory() {
   const { data: tasks, isLoading, error } = useExportHistory()
 
-  const getStatusBadge = (status: ExportTask['status']) => {
-    const variants = {
-      pending: 'secondary',
-      processing: 'default',
-      completed: 'default',
-      failed: 'destructive',
-    } as const
-
-    const labels = {
-      pending: '等待中',
-      processing: '处理中',
-      completed: '已完成',
-      failed: '失败',
-    }
-
-    const icons = {
-      pending: Clock,
-      processing: Loader2,
-      completed: CheckCircle,
-      failed: AlertCircle,
-    }
-
-    const Icon = icons[status]
-
-    return (
-      <Badge variant={variants[status]} className="flex items-center gap-1">
-        <Icon className={`h-3 w-3 ${status === 'processing' ? 'animate-spin' : ''}`} />
-        {labels[status]}
-      </Badge>
-    )
-  }
-
-  // 格式化生产线显示
-  const formatProductionLines = (config: any) => {
+  // 获取生产线列表
+  const getProductionLines = (config: any) => {
     // 添加测试数据
     const testLines = ['生产线1', '生产线2', '生产线3', '生产线4', '生产线5']
     if (!config?.production_line_ids || !Array.isArray(config.production_line_ids)) {
-      return testLines.slice(0, Math.floor(Math.random() * 5) + 1).join(', ')
+      return testLines.slice(0, Math.floor(Math.random() * 5) + 1)
     }
-    const lines = config.production_line_ids
-    if (lines.length <= 2) {
-      return lines.map((id: string) => `生产线${id}`).join(', ')
+    return config.production_line_ids.map((id: string) => `生产线${id}`)
+  }
+
+  // 格式化生产线显示
+  const formatProductionLines = (lines: string[]) => {
+    if (lines.length <= 3) {
+      return lines.join(', ')
     }
-    return `生产线${lines[0]}, 生产线${lines[1]} +${lines.length - 2}条`
+    return `${lines.slice(0, 3).join(', ')} +${lines.length - 3}条`
   }
 
   // 获取数据字段列表
@@ -148,32 +126,80 @@ export default function ExportHistory() {
             <TableBody>
               {tasks?.map((task: ExportTask) => {
                 const dataFields = getDataFields(task.config)
+                const productionLines = getProductionLines(task.config)
                 return (
                   <TableRow key={task.id}>
                     <TableCell className="text-sm">
-                      {formatProductionLines(task.config)}
+                      {productionLines.length <= 3 ? (
+                        <span>{formatProductionLines(productionLines)}</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>{productionLines.slice(0, 3).join(', ')}</span>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                +{productionLines.length - 3}
+                                <ChevronDown className="ml-1 h-3 w-3" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="start">
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                                  {productionLines.map((line: string, index: number) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-xs"
+                                    >
+                                      <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
+                                      <span className="truncate">{line}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="cursor-help underline decoration-dotted underline-offset-4">
-                            {formatDataFields(dataFields)}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <div className="space-y-2">
-                            <p className="font-medium text-sm">数据字段列表</p>
-                            <div className="grid gap-1 text-xs">
-                              {dataFields.map((field: string, index: number) => (
-                                <div key={index} className="flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
-                                  <span>{field}</span>
+                      {dataFields.length <= 2 ? (
+                        <span>{formatDataFields(dataFields)}</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>{dataFields.slice(0, 2).join(', ')}</span>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                +{dataFields.length - 2}
+                                <ChevronDown className="ml-1 h-3 w-3" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="start">
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                                  {dataFields.map((field: string, index: number) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-xs"
+                                    >
+                                      <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
+                                      <span className="truncate">{field}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       {task.config?.start_time && task.config?.end_time ? (
@@ -191,7 +217,7 @@ export default function ExportHistory() {
                     <TableCell>
                       {dayjs(task.createdAt || task.created_at).format('YYYY-MM-DD HH:mm:ss')}
                     </TableCell>
-                    <TableCell>{getStatusBadge(task.status)}</TableCell>
+                    <TableCell><StatusBadge status={task.status} /></TableCell>
                   </TableRow>
                 )
               })}
