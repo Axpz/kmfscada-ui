@@ -31,14 +31,14 @@ const badgeConfigs: Record<string, BadgeConfig> = {
     variant: 'warning'
   },
   // 生产线运行状态 (按照工业SCADA系统最佳实践)
-  '运行中': {
-    label: '运行中',
+  '生产中': {
+    label: '生产中',
     className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/50',
     icon: Cog,
     iconClassName: 'animate-[spin_3s_linear_infinite]',
     variant: 'success'
   },
-  '空闲': {
+  '空闲中': {
     label: '空闲中',
     className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800/50',
     icon: CircleDashed,
@@ -50,8 +50,8 @@ const badgeConfigs: Record<string, BadgeConfig> = {
     icon: Wrench,
     variant: 'warning'
   },
-  '离线': {
-    label: '离线',
+  '离线中': {
+    label: '离线中',
     className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800/50',
     icon: WifiOff,
     variant: 'danger'

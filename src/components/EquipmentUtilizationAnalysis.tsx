@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { addDays, format } from 'date-fns'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DateRange } from 'react-day-picker'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import {
   PieChart as RechartsPieChart,
@@ -18,8 +20,6 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  Legend,
-  LabelList,
 } from 'recharts'
 import {
   Loader2,
@@ -31,10 +31,9 @@ import {
 
 // 设备状态颜色配置
 const STATUS_COLORS = {
-  running: '#22c55e',    // 绿色 - 运行中
-  idle: '#f59e0b',       // 橙色 - 空闲
-  maintenance: '#ef4444', // 红色 - 维护
-  offline: '#6b7280',    // 灰色 - 离线
+  production: '#22c55e',  // 绿色 - 生产中
+  idle: '#f59e0b',        // 橙色 - 空闲中
+  offline: '#6b7280',     // 灰色 - 离线中
 }
 
 // 设备利用率饼图组件
@@ -49,54 +48,37 @@ const UtilizationPieChart = ({
   selectedLineIds: string[]
   onSelectedLineIdsChange: (ids: string[]) => void
 }) => {
-  const [timeRange, setTimeRange] = useState('24h')
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
+    from: addDays(new Date(), -30),
+    to: new Date()
+  }))
 
-  // 计算日期范围
-  const dateRange = useMemo(() => {
-    const now = new Date()
-    let from: Date
-
-    switch (timeRange) {
-      case '1h':
-        from = addDays(now, 0)
-        break
-      case '24h':
-        from = addDays(now, -1)
-        break
-      case '7d':
-        from = addDays(now, -7)
-        break
-      case '30d':
-        from = addDays(now, -30)
-        break
-      default:
-        from = addDays(now, -1)
+  // 获取日期范围
+  const { from, to } = useMemo(() => {
+    if (dateRange?.from && dateRange?.to) {
+      return { from: dateRange.from, to: dateRange.to }
     }
-
-    return { from, to: now }
-  }, [timeRange])
-
-  const { from, to } = dateRange
+    // 默认值：最近30天
+    return { from: addDays(new Date(), -30), to: new Date() }
+  }, [dateRange])
 
   // 生成设备利用率 mock 数据
   const generateUtilizationData = (lineId: string, from: Date, to: Date) => {
     const totalHours = (to.getTime() - from.getTime()) / (1000 * 60 * 60)
-    
+
     // 模拟不同生产线的利用率
     const baseUtilization = 0.75 + (parseInt(lineId) % 3) * 0.05 // 75%-85%基础利用率
-    const runningHours = totalHours * (baseUtilization + Math.random() * 0.1 - 0.05)
-    const maintenanceHours = totalHours * (0.05 + Math.random() * 0.03)
-    const idleHours = totalHours * (0.1 + Math.random() * 0.05)
-    const offlineHours = Math.max(0, totalHours - runningHours - maintenanceHours - idleHours)
+    const productionHours = totalHours * (baseUtilization + Math.random() * 0.1 - 0.05)
+    const idleHours = totalHours * (0.1 + Math.random() * 0.08)
+    const offlineHours = Math.max(0, totalHours - productionHours - idleHours)
 
     return {
       lineId,
       totalHours: Number(totalHours.toFixed(1)),
-      runningHours: Number(runningHours.toFixed(1)),
-      maintenanceHours: Number(maintenanceHours.toFixed(1)),
+      productionHours: Number(productionHours.toFixed(1)),
       idleHours: Number(idleHours.toFixed(1)),
       offlineHours: Number(offlineHours.toFixed(1)),
-      utilizationRate: Number((runningHours / totalHours * 100).toFixed(1)),
+      utilizationRate: Number((productionHours / totalHours * 100).toFixed(1)),
     }
   }
 
@@ -133,27 +115,21 @@ const UtilizationPieChart = ({
         lineId: data.lineId,
         utilizationRate: data.utilizationRate,
         pieData: [
-          { 
-            name: '运行时间', 
-            value: data.runningHours, 
-            color: STATUS_COLORS.running,
-            percentage: ((data.runningHours / totalHours) * 100).toFixed(1)
+          {
+            name: '生产中',
+            value: data.productionHours,
+            color: STATUS_COLORS.production,
+            percentage: ((data.productionHours / totalHours) * 100).toFixed(1)
           },
-          { 
-            name: '空闲时间', 
-            value: data.idleHours, 
+          {
+            name: '空闲中',
+            value: data.idleHours,
             color: STATUS_COLORS.idle,
             percentage: ((data.idleHours / totalHours) * 100).toFixed(1)
           },
-          { 
-            name: '维护时间', 
-            value: data.maintenanceHours, 
-            color: STATUS_COLORS.maintenance,
-            percentage: ((data.maintenanceHours / totalHours) * 100).toFixed(1)
-          },
-          { 
-            name: '离线时间', 
-            value: data.offlineHours, 
+          {
+            name: '离线中',
+            value: data.offlineHours,
             color: STATUS_COLORS.offline,
             percentage: ((data.offlineHours / totalHours) * 100).toFixed(1)
           },
@@ -165,7 +141,7 @@ const UtilizationPieChart = ({
   return (
     <ChartCard
       title="设备利用率分析"
-      subtitle="设备利用率 = 运行时间/30天；以月为运行单位，如果生产了一个月则设备利用率为100%"
+      subtitle="设备利用率 = 生产时间/总时间；可选择任意时间范围进行分析"
       icon={Activity}
       iconColor="text-green-500"
     >
@@ -196,8 +172,13 @@ const UtilizationPieChart = ({
             {/* 时间范围选择器 */}
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                时间范围30天
+                时间范围
               </Label>
+              <DateRangePicker
+                value={dateRange}
+                onChange={setDateRange}
+                className="w-64"
+              />
             </div>
           </div>
 
@@ -215,10 +196,9 @@ const UtilizationPieChart = ({
                       style={{ backgroundColor: color }}
                     />
                     <span className="text-sm whitespace-nowrap">
-                      {status === 'running' && '运行'}
-                      {status === 'idle' && '空闲'}
-                      {status === 'maintenance' && '维护'}
-                      {status === 'offline' && '离线'}
+                      {status === 'production' && '生产中'}
+                      {status === 'idle' && '空闲中'}
+                      {status === 'offline' && '离线中'}
                     </span>
                   </div>
                 ))}
@@ -247,12 +227,11 @@ const UtilizationPieChart = ({
             </div>
           )}
           {!isLoading && !hasError && pieChartsData.length > 0 && (
-            <div className={`grid gap-6 ${
-              pieChartsData.length === 1 ? 'grid-cols-1' :
-              pieChartsData.length === 2 ? 'grid-cols-1 lg:grid-cols-2' :
-              pieChartsData.length <= 4 ? 'grid-cols-1 md:grid-cols-2' :
-              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            }`}>
+            <div className={`grid gap-6 ${pieChartsData.length === 1 ? 'grid-cols-1' :
+                pieChartsData.length === 2 ? 'grid-cols-1 lg:grid-cols-2' :
+                  pieChartsData.length <= 4 ? 'grid-cols-1 md:grid-cols-2' :
+                    'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              }`}>
               {pieChartsData.map((chartData) => (
                 <Card key={chartData.lineId} className="relative">
                   <CardHeader className="pb-2">
@@ -280,13 +259,13 @@ const UtilizationPieChart = ({
                                   <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                               </Pie>
-                              <Tooltip 
+                              <Tooltip
                                 formatter={(value: number) => [`${value.toFixed(1)}h`, '时长']}
                               />
                             </RechartsPieChart>
                           </ResponsiveContainer>
                         </div>
-                        
+
                         {/* 数据列表区域 - 紧凑布局 */}
                         <div className="min-w-0 space-y-2">
                           {chartData.pieData.map((item, index) => (
@@ -310,7 +289,7 @@ const UtilizationPieChart = ({
                               </div>
                             </div>
                           ))}
-                          
+
                           {/* 总利用率显示 */}
                           <div className="pt-2 mt-2 border-t border-border">
                             <div className="flex items-center gap-3">
@@ -376,21 +355,19 @@ const UtilizationTable = ({
   // 生成设备利用率 mock 数据
   const generateUtilizationData = (lineId: string, from: Date, to: Date) => {
     const totalHours = (to.getTime() - from.getTime()) / (1000 * 60 * 60)
-    
+
     const baseUtilization = 0.75 + (parseInt(lineId) % 3) * 0.05
-    const runningHours = totalHours * (baseUtilization + Math.random() * 0.1 - 0.05)
-    const maintenanceHours = totalHours * (0.05 + Math.random() * 0.03)
-    const idleHours = totalHours * (0.1 + Math.random() * 0.05)
-    const offlineHours = Math.max(0, totalHours - runningHours - maintenanceHours - idleHours)
+    const productionHours = totalHours * (baseUtilization + Math.random() * 0.1 - 0.05)
+    const idleHours = totalHours * (0.1 + Math.random() * 0.08)
+    const offlineHours = Math.max(0, totalHours - productionHours - idleHours)
 
     return {
       lineId,
       totalHours: Number(totalHours.toFixed(1)),
-      runningHours: Number(runningHours.toFixed(1)),
-      maintenanceHours: Number(maintenanceHours.toFixed(1)),
+      productionHours: Number(productionHours.toFixed(1)),
       idleHours: Number(idleHours.toFixed(1)),
       offlineHours: Number(offlineHours.toFixed(1)),
-      utilizationRate: Number((runningHours / totalHours * 100).toFixed(1)),
+      utilizationRate: Number((productionHours / totalHours * 100).toFixed(1)),
     }
   }
 
@@ -483,9 +460,8 @@ const UtilizationTable = ({
                 <TableRow>
                   <TableHead className="w-24">生产线</TableHead>
                   <TableHead className="text-center">总时长 (h)</TableHead>
-                  <TableHead className="text-center">运行时长 (h)</TableHead>
+                  <TableHead className="text-center">生产时长 (h)</TableHead>
                   <TableHead className="text-center">空闲时长 (h)</TableHead>
-                  <TableHead className="text-center">维护时长 (h)</TableHead>
                   <TableHead className="text-center">离线时长 (h)</TableHead>
                   <TableHead className="text-center">利用率 (%)</TableHead>
                 </TableRow>
@@ -502,21 +478,18 @@ const UtilizationTable = ({
                       {data.totalHours}
                     </TableCell>
                     <TableCell className="text-center font-mono text-green-600">
-                      {data.runningHours}
+                      {data.productionHours}
                     </TableCell>
                     <TableCell className="text-center font-mono text-orange-600">
                       {data.idleHours}
-                    </TableCell>
-                    <TableCell className="text-center font-mono text-red-600">
-                      {data.maintenanceHours}
                     </TableCell>
                     <TableCell className="text-center font-mono text-gray-600">
                       {data.offlineHours}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge 
-                        variant={data.utilizationRate >= 80 ? "default" : 
-                               data.utilizationRate >= 60 ? "secondary" : "destructive"}
+                      <Badge
+                        variant={data.utilizationRate >= 80 ? "default" :
+                          data.utilizationRate >= 60 ? "secondary" : "destructive"}
                         className="font-mono"
                       >
                         {data.utilizationRate}%

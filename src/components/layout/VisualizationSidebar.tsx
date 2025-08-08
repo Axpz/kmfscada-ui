@@ -52,27 +52,27 @@ const visualizationNavItems: NavItem[] = [
         description: '设备运行效率和利用率统计分析',
         requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
       },
-      {
-        href: '/visualization/analysis/energy-consumption',
-        label: '能耗分析',
-        icon: AlertTriangle,
-        description: '能耗统计分析',
-        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
-      },
-      {
-        href: '/visualization/analysis/equipment-failure',
-        label: '设备故障率分析',
-        icon: AlertTriangle,
-        description: '设备故障频率和维护统计分析',
-        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
-      },
-      {
-        href: '/visualization/analysis/material-utilization',
-        label: '原材料利用率分析',
-        icon: Package,
-        description: '原材料消耗和利用效率分析',
-        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
-      }
+      // {
+      //   href: '/visualization/analysis/energy-consumption',
+      //   label: '能耗分析',
+      //   icon: AlertTriangle,
+      //   description: '能耗统计分析',
+      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      // },
+      // {
+      //   href: '/visualization/analysis/equipment-failure',
+      //   label: '设备故障率分析',
+      //   icon: AlertTriangle,
+      //   description: '设备故障频率和维护统计分析',
+      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      // },
+      // {
+      //   href: '/visualization/analysis/material-utilization',
+      //   label: '原材料利用率分析',
+      //   icon: Package,
+      //   description: '原材料消耗和利用效率分析',
+      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      // }
     ]
   },
   {

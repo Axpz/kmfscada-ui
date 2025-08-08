@@ -27,8 +27,8 @@ import {
   Factory,
   Ruler,
   Camera,
-  Play,
-  Pause,
+  Cog,
+  Cctv,
   Settings,
   Package,
   Droplet,
@@ -385,7 +385,7 @@ const ProductionInfoCard = React.memo(({ lineData }: { lineData: ProductionDataP
         <CardDescription>生产线 #{lineData.production_line_id}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="border-l-4 border-blue-500 pl-4 py-2">
             <div className="text-xs text-muted-foreground mb-1">产品批号</div>
             <div className="font-mono text-lg font-bold text-blue-600">{lineData.production_batch_number}</div>
@@ -439,51 +439,51 @@ const TemperaturePanel = React.memo(({ realTimeData }: { realTimeData: RealTimeD
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-md">
           <Thermometer className="h-5 w-5 text-muted-foreground" />
           温度监控
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pb-0">
         {/* 实时温度数值 */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-blue-600">{latest.机身1}°C</div>
+            <div className="text-sm text-blue-600">{latest.机身1}°C</div>
             <div className="text-xs text-muted-foreground">机身1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-blue-500">{latest.机身2}°C</div>
+            <div className="text-sm  font-bold text-blue-500">{latest.机身2}°C</div>
             <div className="text-xs text-muted-foreground">机身2</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-blue-400">{latest.机身3}°C</div>
+            <div className="text-sm  font-bold text-blue-400">{latest.机身3}°C</div>
             <div className="text-xs text-muted-foreground">机身3</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-blue-300">{latest.机身4}°C</div>
+            <div className="text-sm  font-bold text-blue-300">{latest.机身4}°C</div>
             <div className="text-xs text-muted-foreground">机身4</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-green-600">{latest.法兰1}°C</div>
+            <div className="text-sm font-bold text-green-600">{latest.法兰1}°C</div>
             <div className="text-xs text-muted-foreground">法兰1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-green-500">{latest.法兰2}°C</div>
+            <div className="text-sm font-bold text-green-500">{latest.法兰2}°C</div>
             <div className="text-xs text-muted-foreground">法兰2</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-orange-600">{latest.模具1}°C</div>
+            <div className="text-sm font-bold text-orange-600">{latest.模具1}°C</div>
             <div className="text-xs text-muted-foreground">模具1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <div className="text-lg font-bold text-orange-500">{latest.模具2}°C</div>
+            <div className="text-sm font-bold text-orange-500">{latest.模具2}°C</div>
             <div className="text-xs text-muted-foreground">模具2</div>
           </div>
         </div>
@@ -542,9 +542,9 @@ const MotorPanel = React.memo(({ realTimeData }: { realTimeData: RealTimeDataPoi
   if (!latest) return null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 三个仪表盘并排显示 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 justify-items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 justify-items-center">
         <ScrewSpeedGauge
           value={latest.螺杆转速}
           max={200}
@@ -589,28 +589,27 @@ const QualityPanel = React.memo(({ realTimeData }: { realTimeData: RealTimeDataP
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-md">
           <Settings className="h-5 w-5 text-muted-foreground" />
           质量监控
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 pb-0">
         {/* 实时数值显示 */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-muted/30 rounded">
-            <div className="text-2xl font-bold text-green-600">{latest.实时直径.toFixed(3)}</div>
-            <div className="text-sm text-muted-foreground">实时直径 mm</div>
+          <div className="text-center p-2 bg-muted/30 rounded">
+            <div className="text-sm font-bold text-green-600">{latest.实时直径.toFixed(3)}</div>
+            <div className="text-xs text-muted-foreground">实时直径 mm</div>
           </div>
-          <div className="text-center p-4 bg-muted/30 rounded">
-            <div className="text-2xl font-bold text-blue-600">{latest.生产长度.toFixed(1)}</div>
-            <div className="text-sm text-muted-foreground">生产长度 m</div>
+          <div className="text-center p-2 bg-muted/30 rounded">
+            <div className="text-sm text-blue-600">{latest.生产长度.toFixed(1)}</div>
+            <div className="text-xs text-muted-foreground">生产长度 m</div>
           </div>
         </div>
 
         {/* 实时直径趋势图 */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">实时直径趋势 (最近1分钟)</h4>
           <div className="h-32 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={diameterChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -654,7 +653,7 @@ const QualityPanel = React.memo(({ realTimeData }: { realTimeData: RealTimeDataP
 
         {/* 生产长度趋势图 */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">生产长度趋势 (最近1分钟)</h4>
+          {/* <h4 className="text-sm font-medium text-muted-foreground">生产长度趋势 (最近1分钟)</h4> */}
           <div className="h-32 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={lengthChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -725,7 +724,7 @@ const FluoridePanel = React.memo(() => {
   }, [value])
 
   return (
-    <div className="flex items-center gap-3 px-3 h-10 bg-muted/30 rounded-lg">
+    <div className="flex items-center gap-4 px-4 h-10 bg-muted/30 rounded-lg">
       <div className="flex items-center gap-2">
         <Droplet className={`h-4 w-4 ${isAlarm ? 'text-amber-500' : 'text-green-500'}`} />
         <span className="text-sm font-medium">氟离子浓度:</span>
@@ -804,8 +803,7 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <Camera className="h-5 w-5 text-muted-foreground" />
-              摄像头监控
+              <Cctv className="h-5 w-5 text-muted-foreground" />
             </CardTitle>
             <span className="text-xs text-muted-foreground">
               在线：{onlineCameras.length} / 共 {cameras.length}
@@ -898,17 +896,17 @@ const ProductionLineDetail = React.memo(({ lineData }: { lineData: ProductionDat
   const realTimeData = useRealTimeData(lineData)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 电机监控面板 - 三个仪表盘 */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
+          <CardTitle className="flex items-center gap-2 text-md">
             <Gauge className="h-5 w-5" />
             电机监控
           </CardTitle>
           {/* <CardDescription>实时监控螺杆转速、牵引速度和主轴电流</CardDescription> */}
         </CardHeader>
-        <CardContent>
+        <CardContent className='pb-0'>
           <MotorPanel realTimeData={realTimeData} />
         </CardContent>
       </Card>
@@ -959,110 +957,127 @@ export default function Dashboard() {
   const hasAlarm = selectedLineData ? (parseInt(selectedLineData.production_line_id) % 10 === 0) : false
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-bold">生产线{selectedLineId}实时数据</h1>
-          <p className="text-muted-foreground">
-            监控当前生产线的关键实时指标。
-          </p>
+    <div className="flex gap-4 h-full">
+      {/* Main content area - 3/4 width */}
+      <div className="w-3/4 space-y-4">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-lg font-bold">生产线{selectedLineId}实时数据</h1>
+          </div>
+
+          {productionData && productionData.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* 氟离子浓度监控 */}
+              <FluoridePanel />
+
+              {/* 生产线选择 */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium whitespace-nowrap">选择生产线:</span>
+                <Select value={selectedLineId} onValueChange={setSelectedLineId}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="选择生产线" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {productionData.map((line) => (
+                      <SelectItem key={line.production_line_id} value={line.production_line_id}>
+                        生产线 #{line.production_line_id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
 
-        {productionData && productionData.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* 氟离子浓度监控 */}
-            <FluoridePanel />
+        {/* 生产信息 KPI */}
+        {selectedLineData && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 前3列：使用flex让所有项目等宽分布 */}
+            <Card className="flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-medium">产品批号</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-md font-bold text-blue-600">{selectedLineData.production_batch_number}</div>
+                {/* <p className="text-xs text-muted-foreground">生产线 #{selectedLineData.production_line_id}</p> */}
+              </CardContent>
+            </Card>
 
-            {/* 生产线选择 */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium whitespace-nowrap">选择生产线:</span>
-              <Select value={selectedLineId} onValueChange={setSelectedLineId}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="选择生产线" />
-                </SelectTrigger>
-                <SelectContent>
-                  {productionData.map((line) => (
-                    <SelectItem key={line.production_line_id} value={line.production_line_id}>
-                      生产线 #{line.production_line_id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Card className="flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-medium">物料批号</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-md font-bold text-blue-600">{selectedLineData.material_batch_number}</div>
+                {/* <p className="text-xs text-muted-foreground">原料信息</p> */}
+              </CardContent>
+            </Card>
+
+            <Card className="flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-medium">生产进度</CardTitle>
+                <Ruler className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-md font-bold text-blue-600">80%</div>
+              </CardContent>
+            </Card>
+
+            <Card className="flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-medium">运行状态</CardTitle>
+                <Cog className="h-4 w-4 text-green-500 animate-[spin_3s_linear_infinite]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-md font-bold text-green-600">运行中</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {selectedLineData ? (
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+            {/* 生产线数据 - 占3列 */}
+            <div className="xl:col-span-4 space-y-4">
+              <div>
+                <ProductionLineDetail lineData={selectedLineData} />
+              </div>
             </div>
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-muted/30 rounded-lg">
+            <Factory className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">请选择生产线</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              请从上方下拉框中选择要查看的生产线。
+            </p>
           </div>
         )}
       </div>
 
-      {/* 生产信息 KPI */}
-      {selectedLineData && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">产品批号</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{selectedLineData.production_batch_number}</div>
-              {/* <p className="text-xs text-muted-foreground">生产线 #{selectedLineData.production_line_id}</p> */}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">物料批号</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{selectedLineData.material_batch_number}</div>
-              {/* <p className="text-xs text-muted-foreground">原料信息</p> */}
-            </CardContent>
-          </Card>
-
-          {/* <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">累计产量</CardTitle>
-              <Ruler className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{selectedLineData.total_length_produced.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">米</p>
-            </CardContent>
-          </Card> */}
-
-          <KpiCard
-            title="运行状态"
-            value={isLineActive ? "运行中" : "已停止"}
-            icon={Activity}
-            color={isLineActive ? 'text-green-500' : 'text-red-500'}
-          />
-        </div>
-      )}
-
-      {/* Main Content */}
-      {selectedLineData ? (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* 生产线数据 - 占3列 */}
-          <div className="xl:col-span-3 space-y-6">
-            <div>
-              <ProductionLineDetail lineData={selectedLineData} />
-            </div>
+      {/* Right sidebar area - 1/4 width */}
+      <div className="w-1/4">
+        {/* Reserved space for future content */}
+        {/* <div className="h-full bg-muted/10 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <div className="text-sm font-medium">预留区域</div>
+            <div className="text-xs mt-1">1/4 宽度</div>
           </div>
-
-          {/* 右侧面板 - 占1列，只显示摄像头监控 */}
-          <div className="space-y-6">
+        </div> */}
+        {selectedLineData &&
+          <div className="space-y-4 h-fit">
+            <CameraMonitor lineId={selectedLineData.production_line_id} />
+            <CameraMonitor lineId={selectedLineData.production_line_id} />
+            <CameraMonitor lineId={selectedLineData.production_line_id} />
             <CameraMonitor lineId={selectedLineData.production_line_id} />
           </div>
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-muted/30 rounded-lg">
-          <Factory className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">请选择生产线</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            请从上方下拉框中选择要查看的生产线。
-          </p>
-        </div>
-      )}
+        }
+      </div>
     </div>
   )
 }

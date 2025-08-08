@@ -92,12 +92,6 @@ const MultiSelect = React.forwardRef<
               className="text-xs px-2 py-0.5 h-5"
             >
               {option.label}
-              {!disabled && (
-                <X
-                  className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
-                  onClick={(e) => handleRemove(option.value, e)}
-                />
-              )}
             </Badge>
           ))}
         </div>
@@ -109,12 +103,6 @@ const MultiSelect = React.forwardRef<
         <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5">
           已选择 {value.length} 项
         </Badge>
-        {!disabled && clearable && (
-          <X
-            className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
-            onClick={handleClear}
-          />
-        )}
       </div>
     )
   }

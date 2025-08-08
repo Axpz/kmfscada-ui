@@ -27,14 +27,29 @@ import {
     AlertCircle,
 } from 'lucide-react'
 
+// 环境数据字段
+const ENV_FIELD_CATEGORIES = {
+    label: '选择环境数据',
+    icon: Settings,
+    fields: [
+        { value: 'fluoride_ion_concentration', label: '氟离子浓度' },
+        // { value: 'temperature', label: '环境温度' },
+        // { value: 'humidity', label: '环境湿度' },
+        // { value: 'pressure', label: '环境压力' },
+        // { value: 'ph_value', label: 'pH值' },
+        // { value: 'conductivity', label: '电导率' },
+        // { value: 'dissolved_oxygen', label: '溶解氧' },
+        // { value: 'turbidity', label: '浊度' },
+    ]
+}
+
 // 生产信息字段
 const PROD_FIELD_CATEGORIES = {
-    label: '选择生产信息',
+    label: '选择生产数据',
     icon: FileSpreadsheet,
     fields: [
         { value: 'batch_number', label: '生产批号' },
         { value: 'total_length_produced', label: '生产长度' },
-        { value: 'fluoride_ion_concentration', label: '氟离子浓度' },
     ]
 }
 
@@ -88,11 +103,13 @@ export default function DataExport() {
 
 
     // 按类别全选字段
-    const handleSelectCategoryFields = (categoryType: 'production' | 'process', checked: boolean) => {
-        const categoryFields = categoryType === 'production' 
-            ? PROD_FIELD_CATEGORIES.fields 
+    const handleSelectCategoryFields = (categoryType: 'environment' | 'production' | 'process', checked: boolean) => {
+        const categoryFields = categoryType === 'environment'
+            ? ENV_FIELD_CATEGORIES.fields
+            : categoryType === 'production'
+            ? PROD_FIELD_CATEGORIES.fields
             : PROD_PROCESS_CATEGORIES.fields
-        
+
         if (checked) {
             setSelectedFields(prev => [
                 ...prev.filter(field => !categoryFields.some(f => f.value === field)),
@@ -109,9 +126,11 @@ export default function DataExport() {
     const isAllLinesSelected = productionLines ? selectedLines.length === productionLines.length : false
 
     // 检查类别是否全选
-    const isCategorySelected = (categoryType: 'production' | 'process') => {
-        const categoryFields = categoryType === 'production' 
-            ? PROD_FIELD_CATEGORIES.fields 
+    const isCategorySelected = (categoryType: 'environment' | 'production' | 'process') => {
+        const categoryFields = categoryType === 'environment'
+            ? ENV_FIELD_CATEGORIES.fields
+            : categoryType === 'production'
+            ? PROD_FIELD_CATEGORIES.fields
             : PROD_PROCESS_CATEGORIES.fields
         return categoryFields.every(field => selectedFields.includes(field.value))
     }
@@ -185,6 +204,47 @@ export default function DataExport() {
 
                 {/* 数据选择 */}
                 <div className="space-y-6">
+                    {/* 环境数据字段 */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <ENV_FIELD_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{ENV_FIELD_CATEGORIES.label}</h3>
+                                <span className="text-destructive">*</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="select-all-environment"
+                                    checked={isCategorySelected('environment')}
+                                    onCheckedChange={(checked) => handleSelectCategoryFields('environment', checked as boolean)}
+                                />
+                                <Label htmlFor="select-all-environment" className="text-xs text-muted-foreground">
+                                    全选
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                            {ENV_FIELD_CATEGORIES.fields.map(field => (
+                                <div key={field.value} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`field-${field.value}`}
+                                        checked={selectedFields.includes(field.value)}
+                                        onCheckedChange={(checked) => {
+                                            setSelectedFields(prev =>
+                                                checked
+                                                    ? [...prev, field.value]
+                                                    : prev.filter(v => v !== field.value)
+                                            )
+                                        }}
+                                    />
+                                    <Label htmlFor={`field-${field.value}`} className="text-sm">
+                                        {field.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* 生产线选择 */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">

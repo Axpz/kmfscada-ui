@@ -261,7 +261,7 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       </TableCell> */}
                       <TableCell>
                         <StatusBadge
-                          status={task.status === 'running' ? '运行中' : task.status === 'idle' ? '空闲' : '维护中'}
+                          status={task.status === 'running' ? '生产中' : task.status === 'idle' ? '空闲中' : '离线中'}
                         />
                       </TableCell>
                     </TableRow>

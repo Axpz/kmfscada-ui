@@ -6,12 +6,14 @@ import { useQueries } from '@tanstack/react-query'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { ChartCard } from '@/components/ui/chart-card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { addDays, format } from 'date-fns'
+import { DateRange } from 'react-day-picker'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import {
   LineChart as RechartsLineChart,
@@ -28,37 +30,352 @@ import {
   AlertCircle,
   LineChart,
   TrendingUp,
+  BarChart3,
 } from 'lucide-react'
+import {
+  mean,
+  standardDeviation,
+  min,
+  max,
+  median,
+  quantile,
+  sampleSkewness,
+  sampleKurtosis
+} from 'simple-statistics'
+
+// --- 正态分布计算函数 (使用 simple-statistics 库) ---
+
+// 生成正态分布曲线数据
+const generateNormalDistribution = (values: number[], points: number = 100) => {
+  if (values.length === 0) return []
+
+  // 使用 simple-statistics 计算统计量
+  const meanValue = mean(values)
+  const stdDev = standardDeviation(values)
+
+  // 计算数据范围
+  const minValue = min(values)
+  const maxValue = max(values)
+  const range = maxValue - minValue
+  const start = minValue - range * 0.2
+  const end = maxValue + range * 0.2
+  const step = (end - start) / points
+
+  const distribution = []
+  for (let i = 0; i <= points; i++) {
+    const x = start + i * step
+    // 手动实现正态分布概率密度函数（simple-statistics 没有 normalPdf）
+    const coefficient = 1 / (stdDev * Math.sqrt(2 * Math.PI))
+    const exponent = -0.5 * Math.pow((x - meanValue) / stdDev, 2)
+    const y = coefficient * Math.exp(exponent)
+    distribution.push({
+      x: Number(x.toFixed(2)),
+      y: Number(y.toFixed(6)),
+      density: Number((y * 100).toFixed(4)) // 转换为百分比便于显示
+    })
+  }
+
+  return distribution
+}
+
+// 正态分布图表组件
+const NormalDistributionChart = ({
+  data,
+  seriesName,
+  color
+}: {
+  data: Array<{ x: number; y: number; density: number }>
+  seriesName: string
+  color: string
+}) => {
+  if (!data.length) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <p>暂无数据</p>
+      </div>
+    )
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <RechartsLineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+        <XAxis
+          dataKey="x"
+          tick={{ fontSize: 11 }}
+          tickFormatter={(value) => Number(value).toFixed(1)}
+        />
+        <YAxis
+          tick={{ fontSize: 11 }}
+          tickFormatter={(value) => Number(value).toFixed(4)}
+          label={{ value: '概率密度', angle: -90, position: 'insideLeft' }}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: 'hsl(var(--popover))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: '11px'
+          }}
+          formatter={(value: any, name: string) => [
+            `${Number(value).toFixed(6)}`,
+            '概率密度'
+          ]}
+          labelFormatter={(label) => `值: ${Number(label).toFixed(2)}`}
+        />
+        <Line
+          type="monotone"
+          dataKey="y"
+          stroke={color}
+          strokeWidth={2}
+          dot={false}
+          name={seriesName}
+        />
+      </RechartsLineChart>
+    </ResponsiveContainer>
+  )
+}
+
+// 正态分布分析组件
+const NormalDistributionAnalysis = ({
+  allHistoricalData,
+  selectedLineIds,
+  visibleSeries,
+  chartCategory
+}: {
+  allHistoricalData: any[]
+  selectedLineIds: string[]
+  visibleSeries: string[]
+  chartCategory: ChartCategory
+}) => {
+  // 提取选中系列的数据用于正态分布分析
+  const distributionData = useMemo(() => {
+    if (!allHistoricalData.length || !selectedLineIds.length || !visibleSeries.length) {
+      return []
+    }
+
+    const results: Array<{
+      lineId: string
+      seriesKey: string
+      seriesName: string
+      values: number[]
+      mean: number
+      stdDev: number
+      distribution: Array<{ x: number; y: number; density: number }>
+      color: string
+    }> = []
+
+    selectedLineIds.forEach((lineId, lineIndex) => {
+      const lineData = allHistoricalData[lineIndex]
+      if (!lineData || !Array.isArray(lineData)) return
+
+      visibleSeries.forEach(seriesKey => {
+        const seriesConfig = DATA_SERIES_CONFIG[chartCategory].find(s => s.key === seriesKey)
+        if (!seriesConfig) return
+
+        let values: number[] = []
+
+        // 根据数据系列类型提取值
+        lineData.forEach((point: any) => {
+          let value: number | undefined
+
+          switch (seriesKey) {
+            case 'body_temp_zone_1':
+              value = point.body_temperatures?.[0]
+              break
+            case 'body_temp_zone_2':
+              value = point.body_temperatures?.[1]
+              break
+            case 'body_temp_zone_3':
+              value = point.body_temperatures?.[2]
+              break
+            case 'body_temp_zone_4':
+              value = point.body_temperatures?.[3]
+              break
+            case 'flange_temp_zone_1':
+              value = point.flange_temperatures?.[0]
+              break
+            case 'flange_temp_zone_2':
+              value = point.flange_temperatures?.[1]
+              break
+            case 'mold_temperatures':
+              value = point.mold_temperatures?.reduce((a: number, b: number) => a + b, 0) / (point.mold_temperatures?.length || 1)
+              break
+            case 'screw_motor_speed':
+              value = point.screw_motor_speed
+              break
+            case 'traction_motor_speed':
+              value = point.traction_motor_speed
+              break
+            case 'main_spindle_current':
+              value = point.main_spindle_current
+              break
+            case 'real_time_diameter':
+              value = point.real_time_diameter
+              break
+          }
+
+          if (typeof value === 'number' && !isNaN(value)) {
+            values.push(value)
+          }
+        })
+
+        if (values.length > 0) {
+          const meanValue = mean(values)
+          const stdDev = standardDeviation(values)
+          const distribution = generateNormalDistribution(values)
+          const color = generateLineColor(lineId, seriesKey, selectedLineIds)
+
+          results.push({
+            lineId,
+            seriesKey,
+            seriesName: `生产线${lineId} - ${seriesConfig.name}`,
+            values,
+            mean: meanValue,
+            stdDev,
+            distribution,
+            color
+          })
+        }
+      })
+    })
+
+    return results
+  }, [allHistoricalData, selectedLineIds, visibleSeries, chartCategory])
+
+  if (distributionData.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8 text-muted-foreground">
+          <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>请选择生产线和数据系列以查看正态分布</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {distributionData.map((item, index) => (
+        <Card key={`${item.lineId}-${item.seriesKey}`}>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>{item.seriesName}</span>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>样本数: {item.values.length}</span>
+                <span>均值: {item.mean.toFixed(2)}</span>
+                <span>标准差: {item.stdDev.toFixed(2)}</span>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NormalDistributionChart
+              data={item.distribution}
+              seriesName={item.seriesName}
+              color={item.color}
+            />
+
+            {/* 统计信息 - 横排显示，居中对齐 */}
+            <div className="mt-4 flex justify-center">
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 max-w-4xl">
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">最小值</div>
+                  <div className="font-medium">{min(item.values).toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">最大值</div>
+                  <div className="font-medium">{max(item.values).toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">中位数</div>
+                  <div className="font-medium">{median(item.values).toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">变异系数</div>
+                  <div className="font-medium">{((item.stdDev / item.mean) * 100).toFixed(1)}%</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">第25百分位</div>
+                  <div className="font-medium">{quantile(item.values, 0.25).toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">第75百分位</div>
+                  <div className="font-medium">{quantile(item.values, 0.75).toFixed(2)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">偏度</div>
+                  <div className="font-medium">{sampleSkewness(item.values).toFixed(3)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm">峰度</div>
+                  <div className="font-medium">{sampleKurtosis(item.values).toFixed(3)}</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
 
 // --- Chart Component ---
 
+// 重新设计数据结构，支持细分区域的多选
 const DATA_SERIES_CONFIG = {
   temperature: [
-    { key: 'body_temperatures', name: '机身温度', color: '#8884d8' },
-    { key: 'flange_temperatures', name: '法兰温度', color: '#82ca9d' },
+    // 机身温度 - 4个区
+    { key: 'body_temp_zone_1', name: '机身温度区1', color: '#8884d8', group: 'body_temperatures', index: 0 },
+    { key: 'body_temp_zone_2', name: '机身温度区2', color: '#6366f1', group: 'body_temperatures', index: 1 },
+    { key: 'body_temp_zone_3', name: '机身温度区3', color: '#4f46e5', group: 'body_temperatures', index: 2 },
+    { key: 'body_temp_zone_4', name: '机身温度区4', color: '#3730a3', group: 'body_temperatures', index: 3 },
+    // 法兰温度 - 2个区
+    { key: 'flange_temp_zone_1', name: '法兰温度区1', color: '#82ca9d', group: 'flange_temperatures', index: 0 },
+    { key: 'flange_temp_zone_2', name: '法兰温度区2', color: '#059669', group: 'flange_temperatures', index: 1 },
+    // 模具温度保持原样
     { key: 'mold_temperatures', name: '模具温度', color: '#ffc658' },
   ],
   speed: [
     { key: 'screw_motor_speed', name: '螺杆转速', color: '#ff7300' },
     { key: 'traction_motor_speed', name: '牵引速度', color: '#a020f0' },
   ],
-  motor: [
+  current: [
     { key: 'main_spindle_current', name: '主轴电流', color: '#1e90ff' },
   ],
+  diameter: [
+    { key: 'real_time_diameter', name: '实时直径', color: '#e11d48' },
+  ],
+}
+
+// 为多选组件准备选项数据
+const getSeriesOptions = (category: ChartCategory) => {
+  return DATA_SERIES_CONFIG[category].map(series => ({
+    value: series.key,
+    label: series.name,
+    color: series.color
+  }))
 }
 
 type ChartCategory = keyof typeof DATA_SERIES_CONFIG;
 
-// 颜色生成函数 - 确保不同生产线有不同颜色
+// 颜色生成函数 - 确保不同生产线有不同颜色，支持新的细分区域
 const generateLineColor = (lineId: string, seriesKey: string, selectedLineIds: string[]) => {
   // 为每个数据系列定义基础颜色
   const seriesColors = {
-    'body_temperatures': ['#8884d8', '#4f46e5', '#3730a3', '#1e1b4b'],
-    'flange_temperatures': ['#82ca9d', '#059669', '#047857', '#064e3b'],
+    // 机身温度4个区
+    'body_temp_zone_1': ['#8884d8', '#4f46e5', '#3730a3', '#1e1b4b'],
+    'body_temp_zone_2': ['#6366f1', '#4338ca', '#3730a3', '#312e81'],
+    'body_temp_zone_3': ['#4f46e5', '#3730a3', '#312e81', '#1e1b4b'],
+    'body_temp_zone_4': ['#3730a3', '#312e81', '#1e1b4b', '#0f0f23'],
+    // 法兰温度2个区
+    'flange_temp_zone_1': ['#82ca9d', '#059669', '#047857', '#064e3b'],
+    'flange_temp_zone_2': ['#059669', '#047857', '#064e3b', '#022c22'],
+    // 其他数据系列
     'mold_temperatures': ['#ffc658', '#f59e0b', '#d97706', '#92400e'],
     'screw_motor_speed': ['#ff7300', '#ea580c', '#c2410c', '#9a3412'],
     'traction_motor_speed': ['#a020f0', '#9333ea', '#7c3aed', '#5b21b6'],
-    'main_spindle_current': ['#1e90ff', '#3b82f6', '#2563eb', '#1d4ed8']
+    'main_spindle_current': ['#1e90ff', '#3b82f6', '#2563eb', '#1d4ed8'],
+    'real_time_diameter': ['#e11d48', '#dc2626', '#b91c1c', '#991b1b']
   }
 
   // 获取生产线在选中列表中的索引
@@ -67,8 +384,9 @@ const generateLineColor = (lineId: string, seriesKey: string, selectedLineIds: s
   // 获取该数据系列的颜色数组
   const colors = seriesColors[seriesKey as keyof typeof seriesColors] || ['#8884d8', '#82ca9d', '#ffc658', '#ff7300']
 
-  // 根据生产线索引选择颜色
-  return colors[lineIndex % colors.length]
+  // 根据生产线索引选择颜色，确保索引有效
+  const safeLineIndex = lineIndex >= 0 ? lineIndex : 0
+  return colors[safeLineIndex % colors.length] || '#8884d8' // 提供默认颜色作为后备
 }
 
 const HistoricalChart = ({
@@ -82,10 +400,14 @@ const HistoricalChart = ({
   selectedLineIds: string[]
   onSelectedLineIdsChange: (ids: string[]) => void
 }) => {
-  const [timeRange, setTimeRange] = useState('24h')
-  const [visibleSeries, setVisibleSeries] = useState<string[]>(['body_temperatures', 'screw_motor_speed'])
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
+    from: addDays(new Date(), -7),
+    to: new Date()
+  }))
+  const [visibleSeries, setVisibleSeries] = useState<string[]>([])
   const [chartCategory, setChartCategory] = useState<ChartCategory>('temperature')
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showNormalDistribution, setShowNormalDistribution] = useState(false)
 
   // 监听全屏状态变化
   React.useEffect(() => {
@@ -99,34 +421,21 @@ const HistoricalChart = ({
     }
   }, [])
 
-  // 计算日期范围
-  const dateRange = useMemo(() => {
-    const now = new Date()
-    let from: Date
+  // 监听图表类型变化，切换时清空数据系列选择
+  React.useEffect(() => {
+    setVisibleSeries([])
+  }, [chartCategory])
 
-    switch (timeRange) {
-      case '1h':
-        from = addDays(now, 0)
-        break
-      case '24h':
-        from = addDays(now, -1)
-        break
-      case '7d':
-        from = addDays(now, -7)
-        break
-      case '30d':
-        from = addDays(now, -30)
-        break
-      default:
-        from = addDays(now, -1)
+  // 获取日期范围
+  const { from, to } = useMemo(() => {
+    if (dateRange?.from && dateRange?.to) {
+      return { from: dateRange.from, to: dateRange.to }
     }
+    // 默认值：最近7天
+    return { from: addDays(new Date(), -7), to: new Date() }
+  }, [dateRange])
 
-    return { from, to: now }
-  }, [timeRange])
-
-  const { from, to } = dateRange
-
-  // 生成 mock 数据的函数
+  // 生成 mock 数据的函数 - 更新为支持4个机身温度区和2个法兰温度区
   const generateMockData = (lineId: string, from: Date, to: Date) => {
     const data = []
     const startTime = from.getTime()
@@ -140,14 +449,17 @@ const HistoricalChart = ({
 
       data.push({
         timestamp: timestamp.toISOString(),
+        // 机身温度 - 4个区
         body_temperatures: [
-          baseTemp + Math.random() * 20 - 10,
-          baseTemp + Math.random() * 20 - 10,
-          baseTemp + Math.random() * 20 - 10
+          baseTemp + Math.random() * 20 - 10,      // 区1
+          baseTemp + Math.random() * 20 - 10,      // 区2
+          baseTemp + Math.random() * 20 - 10,      // 区3
+          baseTemp + Math.random() * 20 - 10       // 区4
         ],
+        // 法兰温度 - 2个区
         flange_temperatures: [
-          baseTemp - 20 + Math.random() * 15 - 7.5,
-          baseTemp - 20 + Math.random() * 15 - 7.5
+          baseTemp - 20 + Math.random() * 15 - 7.5,  // 区1
+          baseTemp - 20 + Math.random() * 15 - 7.5   // 区2
         ],
         mold_temperatures: [
           baseTemp + 30 + Math.random() * 25 - 12.5,
@@ -157,7 +469,8 @@ const HistoricalChart = ({
         ],
         screw_motor_speed: baseSpeed + Math.random() * 200 - 100,
         traction_motor_speed: 15 + parseInt(lineId) + Math.random() * 5 - 2.5,
-        main_spindle_current: 25 + parseInt(lineId) * 2 + Math.random() * 10 - 5
+        main_spindle_current: 25 + parseInt(lineId) * 2 + Math.random() * 10 - 5,
+        real_time_diameter: 25.0 + parseInt(lineId) * 0.5 + Math.random() * 2 - 1 // 直径数据，单位mm
       })
     }
     return data
@@ -202,13 +515,23 @@ const HistoricalChart = ({
 
         const entry = timeMap.get(timestamp)
 
-        // 为每条生产线添加数据
-        entry[`line_${lineId}_body_temperatures`] = point.body_temperatures?.reduce((a: number, b: number) => a + b, 0) / (point.body_temperatures?.length || 1)
-        entry[`line_${lineId}_flange_temperatures`] = point.flange_temperatures?.reduce((a: number, b: number) => a + b, 0) / (point.flange_temperatures?.length || 1)
+        // 为每条生产线添加细分区域数据
+        // 机身温度 - 4个区
+        entry[`line_${lineId}_body_temp_zone_1`] = point.body_temperatures?.[0] || 0
+        entry[`line_${lineId}_body_temp_zone_2`] = point.body_temperatures?.[1] || 0
+        entry[`line_${lineId}_body_temp_zone_3`] = point.body_temperatures?.[2] || 0
+        entry[`line_${lineId}_body_temp_zone_4`] = point.body_temperatures?.[3] || 0
+
+        // 法兰温度 - 2个区
+        entry[`line_${lineId}_flange_temp_zone_1`] = point.flange_temperatures?.[0] || 0
+        entry[`line_${lineId}_flange_temp_zone_2`] = point.flange_temperatures?.[1] || 0
+
+        // 其他数据保持原样
         entry[`line_${lineId}_mold_temperatures`] = point.mold_temperatures?.reduce((a: number, b: number) => a + b, 0) / (point.mold_temperatures?.length || 1)
         entry[`line_${lineId}_screw_motor_speed`] = point.screw_motor_speed
         entry[`line_${lineId}_traction_motor_speed`] = point.traction_motor_speed
         entry[`line_${lineId}_main_spindle_current`] = point.main_spindle_current
+        entry[`line_${lineId}_real_time_diameter`] = point.real_time_diameter
       })
     })
 
@@ -231,16 +554,6 @@ const HistoricalChart = ({
         }))
     })
   }, [selectedLineIds, chartCategory, visibleSeries])
-
-  // 修改数据系列切换逻辑 - 全局控制所有生产线的相同数据类型
-  const toggleSeries = (seriesKey: string) => {
-    setVisibleSeries(prev =>
-      prev.includes(seriesKey) ? prev.filter(s => s !== seriesKey) : [...prev, seriesKey]
-    )
-  }
-
-  // 获取当前类别的数据系列配置
-  const currentSeriesConfig = DATA_SERIES_CONFIG[chartCategory]
 
   // 生产线选项
   const productionLineOptions = productionLines?.map(line => ({
@@ -282,22 +595,16 @@ const HistoricalChart = ({
                 )}
               </div>
 
-              {/* 时间范围选择器 */}
+              {/* 日期范围选择器 */}
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                   时间
                 </Label>
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-32 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1h">1小时</SelectItem>
-                    <SelectItem value="24h">24小时</SelectItem>
-                    <SelectItem value="7d">7天</SelectItem>
-                    <SelectItem value="30d">30天</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={setDateRange}
+                  className="w-48"
+                />
               </div>
 
               {/* 图表类型选择器 */}
@@ -312,40 +619,39 @@ const HistoricalChart = ({
                   <SelectContent>
                     <SelectItem value="temperature">温度</SelectItem>
                     <SelectItem value="speed">速度</SelectItem>
-                    <SelectItem value="motor">电机</SelectItem>
+                    <SelectItem value="current">电流</SelectItem>
+                    <SelectItem value="diameter">实时直径</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* 右侧：数据系列选择 */}
+            {/* 右侧：数据系列多选和正态分布按钮 */}
             <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                   数据系列
                 </Label>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  {currentSeriesConfig.map(series => (
-                    <div key={series.key} className="flex items-center gap-1.5">
-                      <Checkbox
-                        id={series.key}
-                        checked={visibleSeries.includes(series.key)}
-                        onCheckedChange={() => toggleSeries(series.key)}
-                        className="h-4 w-4"
-                      />
-                      <Label
-                        htmlFor={series.key}
-                        className="flex items-center gap-1.5 text-sm cursor-pointer"
-                      >
-                        <div
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: series.color }}
-                        />
-                        <span className="whitespace-nowrap">{series.name}</span>
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                <MultiSelect
+                  options={getSeriesOptions(chartCategory)}
+                  value={visibleSeries}
+                  onValueChange={setVisibleSeries}
+                  placeholder="选择数据系列"
+                  className="w-64"
+                  maxDisplay={1}
+                />
+
+                {/* 正态分布切换按钮 */}
+                <Button
+                  variant={showNormalDistribution ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowNormalDistribution(!showNormalDistribution)}
+                  disabled={!allHistoricalData.length || !visibleSeries.length}
+                  className="h-8"
+                >
+                  <BarChart3 className="h-3 w-3 mr-1" />
+                  {showNormalDistribution ? '隐藏分布' : '正态分布'}
+                </Button>
               </div>
             </div>
           </div>
@@ -428,6 +734,27 @@ const HistoricalChart = ({
           )}
         </div>
       </div>
+
+      {/* 正态分布分析区域 */}
+      {showNormalDistribution && (
+        <div className="mt-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              数据正态分布分析
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              分析选中数据系列的正态分布特征，包括均值、标准差和概率密度曲线
+            </p>
+          </div>
+          <NormalDistributionAnalysis
+            allHistoricalData={allHistoricalData}
+            selectedLineIds={selectedLineIds}
+            visibleSeries={visibleSeries}
+            chartCategory={chartCategory}
+          />
+        </div>
+      )}
     </ChartCard>
   )
 }
@@ -711,7 +1038,7 @@ export default function VisualizationStatisticsAnalysis({ showTitle = false }: D
   // 设置默认选择的生产线（前2条）
   React.useEffect(() => {
     if (selectedLineIds.length === 0 && productionLines && productionLines.length > 0) {
-      const defaultLines = productionLines.slice(0, 2).map(line => line.production_line_id)
+      const defaultLines = productionLines.slice(0, 1).map(line => line.production_line_id)
       setSelectedLineIds(defaultLines)
     }
   }, [productionLines, selectedLineIds.length])
