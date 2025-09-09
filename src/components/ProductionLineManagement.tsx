@@ -5,8 +5,10 @@ import {
   useProductionLines,
   useCreateProductionLine,
   useDeleteProductionLine,
-} from '@/hooks/useApi'
-import { ProductionLine } from '@/types'
+  useToggleProductionLineEnabled,
+  useUpdateProductionLine,
+} from '@/hooks/useProductionLines'
+import { ProductionLine, ProductionLineCreate, ProductionLineUpdate } from '@/lib/api-production-lines'
 import {
   Table,
   TableBody,
@@ -46,175 +48,125 @@ import { StatusBadge } from '@/components/ui/status-badge';
 
 // --- Production Line Form ---
 const ProductionLineForm = ({
-  onOpenChange,
   line,
+  onSubmit,
+  onClose,
+  isEdit = false,
 }: {
-  onOpenChange: (open: boolean) => void
   line?: ProductionLine
+  onSubmit: (data: any) => void
+  onClose: () => void
+  isEdit?: boolean
 }) => {
-  const [name, setName] = useState(line?.name || '')
-  const [id, setId] = useState(line?.id || '')
-  const [description, setDescription] = useState(line?.description || '')
-  const [enabled, setEnabled] = useState(line?.enabled !== false)
+  const [formData, setFormData] = useState({
+    name: line?.name || '',
+    description: line?.description || '',
+    enabled: line?.enabled !== false
+  })
 
-  const { mutate: createLine, isPending: isCreating } = useCreateProductionLine()
-  // Note: You'll need to add useUpdateProductionLine hook if it doesn't exist
-  // const { mutate: updateLine, isPending: isUpdating } = useUpdateProductionLine()
+  // 当 line 属性变化时，更新表单数据
+  React.useEffect(() => {
+    if (line) {
+      setFormData({
+        name: line.name || '',
+        description: line.description || '',
+        enabled: line.enabled !== false
+      })
+    }
+  }, [line])
+
+  const handleParameterChange = (field: keyof typeof formData, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (line) {
-      // 编辑模式：允许修改名称、描述和启动状态
-      // updateLine(
-      //   { 
-      //     id: line.id, 
-      //     data: { 
-      //       name: name.trim(), 
-      //       description: description.trim() || `生产线${name.trim()}`,
-      //       enabled: enabled
-      //     } 
-      //   },
-      //   {
-      //     onSuccess: () => {
-      //       toast.success('生产线信息已更新！')
-      //       onOpenChange(false)
-      //     },
-      //     onError: (error) => toast.error(`更新失败: ${error.message}`),
-      //   }
-      // )
-
-      // 临时模拟更新成功
-      toast.success(`生产线 ${name} 信息已更新！启动状态: ${enabled ? '已启用' : '已停用'}`)
-      onOpenChange(false)
-    } else {
-      // 创建模式 - 新创建的生产线默认启用
-      createLine(
-        {
-          name: name.trim(),
-          description: description.trim() || `生产线${name.trim()}`,
-          enabled: true // 新创建的生产线默认启用
-        },
-        {
-          onSuccess: () => {
-            toast.success(`生产线 ${name} 已成功创建！`)
-            onOpenChange(false)
-            // 重置表单
-            setName('')
-            setId('')
-            setDescription('')
-            setEnabled(true)
-          },
-          onError: (err) => toast.error(`创建失败: ${err.message}`),
-        }
-      )
+    if (!formData.name.trim()) {
+      toast.error('请输入生产线名称')
+      return
     }
+    
+    // 准备提交的数据
+    const submitData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      enabled: formData.enabled
+    }
+    
+    onSubmit(submitData)
+    onClose()
   }
 
-  const isPending = isCreating // || isUpdating
-
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6">
-          {/* 生产线ID字段 */}
-          <div className="grid gap-2">
-            <Label htmlFor="line-id" className="text-sm font-medium">
-              生产线ID <span className="text-destructive">*</span>
-            </Label>
-            {line ? (
-              // 编辑模式：显示为只读文本，不使用禁用的输入框
-              <div className="h-10 px-3 py-2 bg-slate-50 rounded-md border border-slate-300 flex items-center text-sm text-slate-600">
-                {id}
-              </div>
-            ) : (
-              // 创建模式：正常的输入框
-              <Input
-                id="line-id"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                placeholder="请输入生产线ID（如：1, 2, 3...）"
-                required
-                className="h-10"
-              />
-            )}
-            <p className="text-xs text-muted-foreground">
-              {line ? '生产线ID创建后不可修改' : '生产线的唯一标识符，建议使用数字编号'}
-            </p>
-          </div>
-
-          {/* 生产线名称字段 */}
-          <div className="grid gap-2">
-            <Label htmlFor="line-name" className="text-sm font-medium">
-              生产线名称 <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="line-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="请输入生产线名称（如：高速生产线A）"
-              required
-              className="h-10"
-            />
-            <p className="text-xs text-muted-foreground">
-              用于在系统中显示和识别的生产线名称
-            </p>
-          </div>
-
-          {/* 描述字段 */}
-          <div className="grid gap-2">
-            <Label htmlFor="line-description" className="text-sm font-medium">
-              生产线描述
-            </Label>
-            <Input
-              id="line-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="请输入生产线描述信息（可选）"
-              className="h-10"
-            />
-            <p className="text-xs text-muted-foreground">
-              详细描述生产线的功能、特点或用途
-            </p>
-          </div>
-
-          {/* 启动状态字段 - 创建和编辑模式下都显示 */}
-          <div className="grid gap-2">
-            <Label htmlFor="line-enabled" className="text-sm font-medium">
-              启动状态
-            </Label>
-            <div className="flex items-center gap-3 h-10">
-              <Switch
-                id="line-enabled"
-                checked={enabled}
-                onCheckedChange={setEnabled}
-              />
-              <span className="text-sm">
-                {enabled ? '已启用' : '已禁用'}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              控制生产线是否可以接收和执行生产任务
-            </p>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-6">
+        {/* 生产线名称字段 */}
+        <div className="grid gap-2">
+          <Label htmlFor="line-name" className="text-sm font-medium">
+            生产线名称 <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="line-name"
+            value={formData.name}
+            onChange={(e) => handleParameterChange('name', e.target.value)}
+            placeholder="请输入生产线名称"
+            required
+            className="h-10"
+          />
+          <p className="text-xs text-muted-foreground">
+            输入生产线的唯一标识名称
+          </p>
         </div>
 
-        <DialogFooter className="gap-2 pt-6 border-t">
-          <DialogClose asChild>
-            <Button type="button" variant="outline" className="h-10">
-              取消
-            </Button>
-          </DialogClose>
-          <Button
-            type="submit"
-            disabled={isPending || !name.trim() || (!line && !id.trim())}
+        {/* 描述字段 */}
+        <div className="grid gap-2">
+          <Label htmlFor="line-description" className="text-sm font-medium">
+            生产线描述
+          </Label>
+          <Input
+            id="line-description"
+            value={formData.description}
+            onChange={(e) => handleParameterChange('description', e.target.value)}
+            placeholder="请输入生产线描述信息（可选）"
             className="h-10"
-          >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {line ? '保存更改' : '创建生产线'}
+          />
+          <p className="text-xs text-muted-foreground">
+            描述生产线的用途和特点
+          </p>
+        </div>
+
+        {/* 启动状态字段 */}
+        <div className="grid gap-2">
+          <Label htmlFor="line-enabled" className="text-sm font-medium">
+            启动状态
+          </Label>
+          <div className="flex items-center gap-3 h-10">
+            <Switch
+              id="line-enabled"
+              checked={formData.enabled}
+              onCheckedChange={(checked) => handleParameterChange('enabled', checked)}
+            />
+            <span className="text-sm">
+              {formData.enabled ? '已启用' : '已禁用'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <DialogFooter className="gap-2 pt-6">
+        <DialogClose asChild>
+          <Button type="button" variant="outline" className="h-10" onClick={onClose}>
+            取消
           </Button>
-        </DialogFooter>
-      </form>
-    </div>
+        </DialogClose>
+        <Button type="submit" className="h-10">
+          {isEdit ? '保存更改' : '创建生产线'}
+        </Button>
+      </DialogFooter>
+    </form>
   )
 }
 
@@ -225,12 +177,52 @@ export default function ProductionLineManagement() {
   const [selectedLine, setSelectedLine] = useState<ProductionLine | undefined>(undefined)
   const { data: lines, isLoading, error } = useProductionLines()
   const { mutate: deleteLine, isPending: isDeleting } = useDeleteProductionLine()
+  const { mutate: createLine, isPending: isCreating } = useCreateProductionLine()
+  const { mutate: updateLine, isPending: isUpdating } = useUpdateProductionLine()
 
   const handleDelete = (line: ProductionLine) => {
     deleteLine(line.id, {
-      onSuccess: () => toast.success(`生产线 #${line.id} 已删除。`),
+      onSuccess: () => toast.success(`生产线 ${line.name} 已删除。`),
       onError: (err) => toast.error(`删除失败: ${err.message}`),
     })
+  }
+
+  const handleCreateLine = (data: ProductionLineCreate) => {
+    createLine(data, {
+      onSuccess: () => {
+        toast.success('生产线创建成功！')
+        setAddDialogOpen(false)
+      },
+      onError: (err) => toast.error(`创建失败: ${err.message}`),
+    })
+  }
+
+  const handleUpdateLine = (data: ProductionLineUpdate) => {
+    if (!selectedLine) return
+    
+    updateLine(
+      { id: selectedLine.id, updates: data },
+      {
+        onSuccess: () => {
+          toast.success('生产线更新成功！')
+          setEditDialogOpen(false)
+          setSelectedLine(undefined)
+        },
+        onError: (err) => toast.error(`更新失败: ${err.message}`),
+      }
+    )
+  }
+
+  const toggleMutation = useToggleProductionLineEnabled()
+  
+  const handleToggleEnabled = (line: ProductionLine, enabled: boolean) => {
+    toggleMutation.mutate(
+      { id: line.id, enabled },
+      {
+        onSuccess: () => toast.success(`生产线 ${line.name} ${enabled ? '已启用' : '已禁用'}`),
+        onError: (err) => toast.error(`状态更新失败: ${err.message}`),
+      }
+    )
   }
 
   if (isLoading) {
@@ -260,44 +252,54 @@ export default function ProductionLineManagement() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>添加新生产线</DialogTitle>
+              <DialogTitle></DialogTitle>
             </DialogHeader>
-            <ProductionLineForm onOpenChange={setAddDialogOpen} />
+            <ProductionLineForm 
+              onSubmit={handleCreateLine}
+              onClose={() => setAddDialogOpen(false)}
+              isEdit={false}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* 生产线表格 - 使用默认样式 */}
+      {/* 生产线表格 */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>生产线名称</TableHead>
-              <TableHead>生产线ID</TableHead>
               <TableHead>描述</TableHead>
-              <TableHead>启动状态</TableHead>
+              <TableHead>启用状态</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lines?.map((line: any) => (
+            {lines?.items?.map((line: ProductionLine) => (
               <TableRow key={line.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Factory className="h-4 w-4 text-primary" />
                     {line.name}
                   </div>
                 </TableCell>
-                <TableCell>{line.id}</TableCell>
-                <TableCell>{line.description || '暂无描述'}</TableCell>
+                <TableCell>{line.description}</TableCell>
                 <TableCell>
-                  <StatusBadge status={line.enabled !== false ? '已启用' : '已禁用'}/>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={line.enabled ?? false}
+                      onCheckedChange={(enabled) => handleToggleEnabled(line, enabled)}
+                      disabled={isDeleting}
+                    />
+                    <StatusBadge status={(line.enabled ?? false) ? '已启用' : '已禁用'} />
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     <Dialog open={isEditDialogOpen && selectedLine?.id === line.id} onOpenChange={(open) => {
-                      if (!open) setSelectedLine(undefined);
-                      setEditDialogOpen(open);
+                      if (!open) {
+                        setSelectedLine(undefined);
+                        setEditDialogOpen(false);
+                      }
                     }}>
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="sm" onClick={() => {
@@ -311,7 +313,17 @@ export default function ProductionLineManagement() {
                         <DialogHeader>
                           <DialogTitle>编辑生产线: {selectedLine?.name}</DialogTitle>
                         </DialogHeader>
-                        {selectedLine && <ProductionLineForm onOpenChange={setEditDialogOpen} line={selectedLine} />}
+                        {selectedLine && (
+                          <ProductionLineForm 
+                            line={selectedLine}
+                            onSubmit={handleUpdateLine}
+                            onClose={() => {
+                              setEditDialogOpen(false);
+                              setSelectedLine(undefined);
+                            }}
+                            isEdit={true}
+                          />
+                        )}
                       </DialogContent>
                     </Dialog>
 
@@ -345,7 +357,7 @@ export default function ProductionLineManagement() {
         </Table>
       </div>
 
-      {lines?.length === 0 && (
+      {lines?.items?.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Factory className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>暂无生产线数据</p>

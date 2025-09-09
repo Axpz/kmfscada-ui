@@ -65,7 +65,7 @@ const badgeConfigs: Record<string, BadgeConfig> = {
     variant: 'success'
   },
   'idle': {
-    label: '空闲',
+    label: '空闲中',
     className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800/50',
     icon: Pause,
     variant: 'secondary'
@@ -77,7 +77,7 @@ const badgeConfigs: Record<string, BadgeConfig> = {
     variant: 'warning'
   },
   'offline': {
-    label: '离线',
+    label: '离线中',
     className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800/50',
     icon: WifiOff,
     variant: 'danger'

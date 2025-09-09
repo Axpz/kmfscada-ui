@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useExportHistory } from '@/hooks/useApi'
-import { ExportTask } from '@/types'
+// import { ExportTask } from '@/types' // 移除未使用的导入
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
   Table,
@@ -26,6 +26,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+// 扩展 dayjs 以支持时区
+dayjs.extend(utc)
+dayjs.extend(timezone)
 import {
   Download,
   Clock,
@@ -35,49 +41,25 @@ import {
   History,
   ChevronDown,
 } from 'lucide-react'
+import { useAvailableProductionLines } from '@/hooks/useProductionLines'
+import { ExportRecord, useExportRecords } from '@/hooks/useExportRecords'
+
+// 格式化文件大小的工具函数
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+}
 
 export default function ExportHistory() {
-  const { data: tasks, isLoading, error } = useExportHistory()
+  const { data: exportRecords, isLoading, error } = useExportRecords()
 
-  // 获取生产线列表
-  const getProductionLines = (config: any) => {
-    // 添加测试数据
-    const testLines = ['生产线1', '生产线2', '生产线3', '生产线4', '生产线5']
-    if (!config?.production_line_ids || !Array.isArray(config.production_line_ids)) {
-      return testLines.slice(0, Math.floor(Math.random() * 5) + 1)
-    }
-    return config.production_line_ids.map((id: string) => `生产线${id}`)
-  }
-
-  // 格式化生产线显示
-  const formatProductionLines = (lines: string[]) => {
-    if (lines.length <= 3) {
-      return lines.join(', ')
-    }
-    return `${lines.slice(0, 3).join(', ')} +${lines.length - 3}条`
-  }
-
-  // 获取数据字段列表
-  const getDataFields = (config: any) => {
-    // Mock 10个数据字段
-    const testFields = [
-      '机身温度', '法兰温度', '模具温度', '螺杆转速', '牵引速度',
-      '实时直径', '生产长度', '氟离子浓度', '主轴电流', '压力值'
-    ]
-    if (!config?.fields || !Array.isArray(config.fields)) {
-      const randomCount = Math.floor(Math.random() * 10) + 1
-      return testFields.slice(0, randomCount)
-    }
-    return config.fields
-  }
-
-  // 格式化数据字段显示
-  const formatDataFields = (fields: string[]) => {
-    if (fields.length <= 2) {
-      return fields.join(', ')
-    }
-    return `${fields[0]}, ${fields[1]} +${fields.length - 2}项`
-  }
+  const { data: availableLines } = useAvailableProductionLines()
+  const lineNames = availableLines?.items.map(line => line.name) || []
 
   if (isLoading) {
     return (
@@ -119,19 +101,20 @@ export default function ExportHistory() {
                 <TableHead className="hidden sm:table-cell">数据字段</TableHead>
                 <TableHead>时间范围</TableHead>
                 <TableHead className="hidden sm:table-cell">格式</TableHead>
+                <TableHead className="hidden sm:table-cell">文件大小</TableHead>
                 <TableHead>创建时间</TableHead>
                 <TableHead>状态</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks?.map((task: ExportTask) => {
-                const dataFields = getDataFields(task.config)
-                const productionLines = getProductionLines(task.config)
+              {exportRecords?.items?.map((record: ExportRecord) => {
+                const dataFields = record.fields.split(',')
+                const productionLines = record.line_names.split(',')
                 return (
-                  <TableRow key={task.id}>
+                  <TableRow key={record.id}>
                     <TableCell className="text-sm">
                       {productionLines.length <= 3 ? (
-                        <span>{formatProductionLines(productionLines)}</span>
+                        <span>{productionLines.join(', ')}</span>
                       ) : (
                         <div className="flex items-center gap-2">
                           <span>{productionLines.slice(0, 3).join(', ')}</span>
@@ -167,7 +150,7 @@ export default function ExportHistory() {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm">
                       {dataFields.length <= 2 ? (
-                        <span>{formatDataFields(dataFields)}</span>
+                        <span>{dataFields.join(', ')}</span>
                       ) : (
                         <div className="flex items-center gap-2">
                           <span>{dataFields.slice(0, 2).join(', ')}</span>
@@ -202,22 +185,25 @@ export default function ExportHistory() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {task.config?.start_time && task.config?.end_time ? (
+                      {record.start_time && record.end_time ? (
                         <>
-                          {format(new Date(task.config.start_time), 'yyyy-MM-dd')} 至{' '}
-                          {format(new Date(task.config.end_time), 'yyyy-MM-dd')}
+                          {dayjs.utc(record.start_time).local().format('YYYY-MM-DD')} 至{' '}
+                          {dayjs.utc(record.end_time).local().format('YYYY-MM-DD')}
                         </>
                       ) : (
                         <span className="text-muted-foreground">配置缺失</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {task.config?.format ? task.config.format.toUpperCase() : '-'}
+                      {record.format ? record.format.toUpperCase() : '-'}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {record.size ? formatFileSize(record.size) : '-'}
                     </TableCell>
                     <TableCell>
-                      {dayjs(task.createdAt || task.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                      {dayjs.utc(record.updated_at).local().format('YYYY-MM-DD HH:mm:ss')}
                     </TableCell>
-                    <TableCell><StatusBadge status={task.status} /></TableCell>
+                    <TableCell><StatusBadge status={record.status} /></TableCell>
                   </TableRow>
                 )
               })}
@@ -226,7 +212,7 @@ export default function ExportHistory() {
         </div>
 
         {/* 空状态提示 */}
-        {tasks?.length === 0 && (
+        {exportRecords?.items?.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>暂无导出历史记录</p>

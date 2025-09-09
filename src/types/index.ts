@@ -26,53 +26,6 @@ export interface User {
 
 /**
  * =================================================================================
- *                              生产与设备 (Production & Equipment)
- * =================================================================================
- */
-
-/**
- * 生产线信息
- */
-export interface ProductionLine {
-  id: string; // 通常是 1-8 的数字或 UUID
-  name: string; // 例如 "生产线1"
-  description?: string;
-  enabled?: boolean; // 生产线启用状态，默认为 true
-}
-
-/**
- * 单个时间点从设备采集的所有生产数据
- * 这是数据库中时序数据表的核心结构
- */
-export interface ProductionDataPoint {
-  id?: string; // 数据库中的唯一ID
-  timestamp: string; // 数据采集时间戳 (ISO 8601 格式)
-  
-  // 生产标识
-  production_line_id: string; // 流水线编号
-  production_batch_number: string; // 生产批号
-  material_batch_number: string; // 物料批次号
-
-  // 温度数据 (°C)
-  body_temperatures: number[]; // 机身温度 (4个区)
-  flange_temperatures: number[]; // 法兰温度 (最多2个区)
-  mold_temperatures: number[]; // 模具温度 (2个区)
-
-  // 速度数据
-  screw_motor_speed: number; // 螺杆电机转速 (rpm)
-  traction_motor_speed: number; // 牵引机速度 (m/min)
-
-  // 测量与汇总数据
-  real_time_diameter: number; // 实时测量直径 (mm)
-  total_length_produced: number; // 当前批次生产长度汇总 (m)
-
-  // 其他数据
-  fluoride_ion_concentration: number; // 氟离子浓度 (ppm)
-  main_spindle_current: number; // 主轴电流 (A)
-}
-
-/**
- * =================================================================================
  *                                报警 (Alarms)
  * =================================================================================
  */
@@ -91,12 +44,40 @@ export interface DiameterAlarmConfig {
  * 报警记录
  */
 export interface AlarmRecord {
-  id: string;
+  id: number;
   timestamp: string;
-  production_line_id: string;
-  message: string; // 例如 "实时直径超出上限"
-  current_value: number;
-  acknowledged: boolean; // 是否已确认
+  line_id: string;
+  parameter_name: string;
+  parameter_value: number;
+  alarm_message: string;
+  is_acknowledged: boolean;
+  acknowledged_at?: string;
+  acknowledged_by?: string;
+  alarm_rule_id?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlarmRecordAcknowledge {
+  acknowledged_by: string;
+}
+
+export interface AlarmRecordFilter {
+  line_id?: string;
+  parameter_name?: string;
+  alarm_message?: string;
+  is_acknowledged?: boolean;
+  start_time?: string;
+  end_time?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface AlarmRecordListResponse {
+  items: AlarmRecord[];
+  total: number;
+  page: number;
+  size: number;
 }
 
 
@@ -117,55 +98,6 @@ export interface EquipmentUtilization {
 }
 
 /**
- * 数据导出任务的配置
- */
-export interface DataExportConfig {
-  start_time: string;
-  end_time: string;
-  format: 'csv' | 'xlsx';
-  // 选择要导出的数据字段
-  fields: (keyof Omit<ProductionDataPoint, 'id' | 'timestamp' | 'production_line_id'>)[];
-}
-
-/**
- * 导出任务状态
- */
-export type ExportTaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
-
-/**
- * 导出任务
- */
-export interface ExportTask {
-  id: string;
-  filename: string;
-  status: ExportTaskStatus;
-  created_at: string;
-  createdAt: string; // 兼容性字段
-  download_url?: string;
-  downloadUrl?: string; // 兼容性字段
-  error_message?: string;
-  config: DataExportConfig;
-}
-
-/**
- * 生产数据（用于表单）
- */
-export interface ProductionData {
-  production_line_id: string;
-  production_batch_number: string;
-  material_batch_number: string;
-  body_temperatures: number[];
-  flange_temperatures: number[];
-  mold_temperatures: number[];
-  screw_motor_speed: number;
-  traction_motor_speed: number;
-  real_time_diameter: number;
-  total_length_produced: number;
-  fluoride_ion_concentration: number;
-  main_spindle_current: number;
-}
-
-/**
  * 实时监控数据
  */
 export interface RealtimeMonitorData {
@@ -176,52 +108,6 @@ export interface RealtimeMonitorData {
   flow_rate: number;
   status: 'running' | 'stopped' | 'maintenance' | 'alarm';
 }
-
-/**
- * 生产线数据（用于实时监控）
- */
-/**
- * 生产线数据状态
- */
-export type ProductionLineStatus = 'running' | 'stopped' | 'maintenance' | 'alarm';
-
-/**
- * 生产线数据（用于实时监控）
- */
-export interface ProductionLineData {
-  id: string;
-  name: string;
-  status: ProductionLineStatus;
-  bodyTemperatures: {
-    zone1: number;
-    zone2: number;
-    zone3: number;
-    zone4: number;
-  };
-  flangeTemperatures: {
-    zone1: number;
-    zone2: number;
-  };
-  moldTemperatures: {
-    zone1: number;
-    zone2: number;
-  };
-  motorSpeeds: {
-    screw: number;
-    traction: number;
-  };
-  measurements: {
-    diameter: number;
-    length: number;
-  };
-  chemistry: {
-    fluoride: number;
-  };
-  electrical: {
-    current: number;
-  };
-}
-
 
 /**
  * =================================================================================
@@ -289,4 +175,77 @@ export interface OperationLog {
   operation_type: string;
   operation_location: string;
   operation_result: 'success' | 'failure';
+}
+
+export type ProductionLineStatus = 'running' | 'idle' | 'offline';
+
+/**
+ * 生产线信息
+ */
+export interface ProductionLine {
+  id: number;
+  name: string;
+  description?: string;
+  enabled?: boolean;
+  status?: ProductionLineStatus;
+}
+
+export interface SensorValue {
+  value: number;
+  alarm: boolean;
+  alarmCode: string;
+  alarmMessage: string;
+}
+
+export interface ProductionLineData {
+  // === 核心维度：标识数据来源和时间 ===
+  timestamp: string               // 时间戳 (ISO 8601 格式)
+  line_id: string                 // 生产线ID
+  component_id: string            // 组件ID，如 'winder' 或 'motor'
+  
+  // === 生产业务数据 ===
+  batch_product_number: string    // 生产批号
+  current_length: SensorValue          // 生产长度 (米)
+  target_length: SensorValue           // 目标生产长度 (米)
+  diameter: SensorValue                // 实时直径 (mm)
+  fluoride_concentration: SensorValue  // 氟离子浓度 (mg/L)
+
+  // === 温度传感器组 (°C) ===
+  temp_body_zone1: SensorValue
+  temp_body_zone2: SensorValue
+  temp_body_zone3: SensorValue
+  temp_body_zone4: SensorValue
+  temp_flange_zone1: SensorValue
+  temp_flange_zone2: SensorValue
+  temp_mold_zone1: SensorValue
+  temp_mold_zone2: SensorValue
+
+  // === 电流传感器组 (A) ===
+  current_body_zone1: SensorValue
+  current_body_zone2: SensorValue
+  current_body_zone3: SensorValue
+  current_body_zone4: SensorValue
+  current_flange_zone1: SensorValue
+  current_flange_zone2: SensorValue
+  current_mold_zone1: SensorValue
+  current_mold_zone2: SensorValue
+
+  // === 电机参数 ===
+  motor_screw_speed: SensorValue       // 螺杆转速 (rpm)
+  motor_screw_torque: SensorValue      // 螺杆扭矩
+  motor_current: SensorValue           // 电机电流 (A)
+  motor_traction_speed: SensorValue    // 牵引速度 (m/min)
+  motor_vacuum_speed: SensorValue      // 真空速度
+
+  // === 收卷机 ===
+  winder_speed: SensorValue            // 收卷速度
+  winder_torque: SensorValue           // 收卷扭矩
+  winder_layer_count: SensorValue      // 收卷层数
+  winder_tube_speed: SensorValue       // 收卷管速度
+  winder_tube_count: SensorValue       // 收卷管数量
+}
+
+export interface ChartDataPoint {
+  timestamp: number;
+  [key: string]: number | string;
 }

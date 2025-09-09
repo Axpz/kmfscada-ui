@@ -3,8 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono as JetBrainsMono } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { AuthProvider } from '@/contexts'
-import QueryProvider from '@/providers/QueryProvider'
-import { ThemeProvider } from '@/providers/theme-provider'
+import { QueryProvider, ThemeProvider, RealtimeProvider } from '@/providers'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -79,10 +78,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
+            {/* <RealtimeProvider> */}
+              <AuthProvider>
+                {children}
+                <Toaster />
+              </AuthProvider>
+            {/* </RealtimeProvider> */}
           </QueryProvider>
         </ThemeProvider>
       </body>

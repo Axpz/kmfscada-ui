@@ -26,7 +26,7 @@ interface NavItem {
 const visualizationNavItems: NavItem[] = [
   {
     href: '/visualization',
-    label: '生成线概览',
+    label: '数据概览',
     icon: Eye,
     description: '生产线数据概览',
     requiredRole: ['superadmin', 'admin', 'operator'] as Role[]

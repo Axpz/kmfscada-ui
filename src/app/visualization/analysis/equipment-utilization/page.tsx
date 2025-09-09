@@ -16,9 +16,6 @@ const EquipmentUtilizationPage = () => {
           {/* 页面头部 */}
           <div>
             <h2 className="text-lg font-semibold">设备利用率分析</h2>
-            <p className="text-sm text-muted-foreground">
-              分析设备运行状态，优化生产效率。
-            </p>
           </div>
 
           {/* 主要内容 */}

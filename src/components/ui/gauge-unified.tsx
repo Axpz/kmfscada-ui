@@ -4,23 +4,32 @@ import React from 'react'
 import ReactECharts from 'echarts-for-react'
 import { cn } from '@/lib/utils'
 
-interface TractionSpeedGaugeProps {
+export interface GaugeConfig {
+  title: string
+  unit: string
+  max: number
+  min: number
+  color: string
+  decimalPlaces?: number
+}
+
+interface UnifiedGaugeProps {
   value: number
-  max?: number
-  min?: number
+  config: GaugeConfig
   className?: string
 }
 
 /**
- * Traction Speed Gauge component following shadcn/ui design patterns
- * Displays traction speed with a semi-circular gauge and progress indication
+ * Configurable Gauge component that can display different types of metrics
+ * with configurable titles, units, ranges, and colors
  */
-export const TractionSpeedGauge: React.FC<TractionSpeedGaugeProps> = ({
+export const ConfigurableGauge: React.FC<UnifiedGaugeProps> = ({
   value,
-  max = 50,
-  min = 0,
+  config,
   className
 }) => {
+  const { title, unit, max, min, color, decimalPlaces = 1 } = config
+  
   // Calculate the progress percentage for the color mapping
   const progress = Math.min(value / max, 1)
 
@@ -40,7 +49,7 @@ export const TractionSpeedGauge: React.FC<TractionSpeedGaugeProps> = ({
             width: 12,
             // Use progress-based color mapping
             color: [
-              [progress, '#0891b2'], // Cyan color for progress
+              [progress, color], // Configurable color for progress
               [1, 'hsl(var(--muted))'] // Muted color for remaining
             ]
           }
@@ -99,7 +108,7 @@ export const TractionSpeedGauge: React.FC<TractionSpeedGaugeProps> = ({
       className
     )}>
       <div className="flex items-center justify-center px-4 pt-3 pb-2">
-        <h3 className="text-sm font-medium">牵引速度</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
       </div>
 
       <div className="flex-1 px-2">
@@ -111,12 +120,12 @@ export const TractionSpeedGauge: React.FC<TractionSpeedGaugeProps> = ({
       </div>
 
       <div className="flex items-center justify-center px-4 pb-3">
-        <span className="text-sm">{value.toFixed(1)}</span>
-        <span className="ml-1 text-sm text-muted-foreground">m/min</span>
+        <span className="text-sm">{value.toFixed(decimalPlaces)}</span>
+        <span className="ml-1 text-sm text-muted-foreground">{unit}</span>
       </div>
     </div>
   )
 }
 
 // Default export for consistency
-export default TractionSpeedGauge
+export default ConfigurableGauge

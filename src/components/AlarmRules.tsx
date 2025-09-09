@@ -1,8 +1,17 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { useAlarmRules, useUpdateAlarmRule, useProductionData } from '@/hooks/useApi'
-import { DiameterAlarmConfig } from '@/types'
+import React, { useState, useMemo, useEffect } from 'react'
+import { 
+  useAlarmRulesList, 
+  useCreateAlarmRule, 
+  useUpdateAlarmRule, 
+  useDeleteAlarmRule, 
+  useToggleAlarmRule,
+} from '@/hooks/useAlarmRules'
+import { 
+  type AlarmRule,
+  type AlarmRuleCreate
+} from '@/lib/api-alarm-rules'
 import {
   Table,
   TableBody,
@@ -58,28 +67,48 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useActiveProductionLines } from '@/hooks/useProductionLines'
 
-// Mock监控参数选项
-const MONITOR_PARAMETERS = [
-  { value: 'real_time_diameter', label: '实时测量直径' },
-  { value: 'body_temperature', label: '机身温度' },
-  { value: 'flange_temperature', label: '法兰温度' },
-  { value: 'mold_temperature', label: '模具温度' },
-  { value: 'screw_motor_speed', label: '螺杆转速' },
-  { value: 'traction_motor_speed', label: '牵引速度' },
+const ALARM_RULE_PARAMETERS = [
+  { value: 'current_length', label: '当前生产长度' },
+  { value: 'diameter', label: '实时测量直径' },
+  { value: 'fluoride_concentration', label: '氟离子浓度' },
+
+  { value: 'temp_body', label: '机身温度' },
+  { value: 'temp_flange', label: '法兰温度' },
+  { value: 'temp_mold', label: '模具温度' },
+
+  { value: 'current_body', label: '机身电流' },
+  { value: 'current_flange', label: '法兰电流' },
+  { value: 'current_mold', label: '模具电流' },
+
+  { value: 'motor_screw_speed', label: '螺杆电机速度' },
+  { value: 'motor_screw_torque', label: '电机扭矩' },
+  { value: 'motor_current', label: '主机电流' },
+  { value: 'motor_traction_speed', label: '牵引速度' },
+  { value: 'motor_vacuum_speed', label: '真空速度' },
+
+  { value: 'winder_speed', label: '当前收卷速度' },
+  { value: 'winder_torque', label: '当前收卷扭力' },
+  { value: 'winder_layer_count', label: '当前排管层数' },
+  { value: 'winder_tube_speed', label: '当前排管速度' },
+  { value: 'winder_tube_count', label: '当前排管根数' },
 ]
 
 // 扩展的报警规则类型
-interface ExtendedAlarmRule extends DiameterAlarmConfig {
+interface ExtendedAlarmRule {
   id?: string
-  parameter_type: string
+  line_id: string
   parameter_name: string
+  lower_limit: number
+  upper_limit: number
+  enabled: boolean
   created_at: string
   updated_at: string
 }
 
 // 排序类型
-type SortField = 'production_line_id' | 'created_at' | 'updated_at'
+type SortField = 'line_id' | 'created_at' | 'updated_at'
 type SortDirection = 'asc' | 'desc'
 
 // 报警规则表单组件
@@ -94,11 +123,11 @@ const AlarmRuleForm = ({
   onClose: () => void
   isEdit?: boolean
 }) => {
-  const { data: productionLines } = useProductionData()
+  const { data: activeLineIds } = useActiveProductionLines()
+  const lineIds = ['*', ...activeLineIds?.items?.map(line => line.name) || []]
   const [formData, setFormData] = useState({
-    production_line_id: rule?.production_line_id || '',
-    parameter_type: rule?.parameter_type || 'real_time_diameter',
-    parameter_name: rule?.parameter_name || '实时测量直径',
+    line_id: rule?.line_id || '',
+    parameter_name: rule?.parameter_name || '',
     lower_limit: rule?.lower_limit || 0,
     upper_limit: rule?.upper_limit || 0,
     enabled: rule?.enabled || false,
@@ -106,7 +135,7 @@ const AlarmRuleForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.production_line_id) {
+    if (!formData.line_id) {
       toast.error('请选择生产线')
       return
     }
@@ -118,11 +147,10 @@ const AlarmRuleForm = ({
   }
 
   const handleParameterChange = (value: string) => {
-    const parameter = MONITOR_PARAMETERS.find(p => p.value === value)
+    const parameter = ALARM_RULE_PARAMETERS.find(p => p.value === value)
     setFormData(prev => ({
       ...prev,
-      parameter_type: value,
-      parameter_name: parameter?.label || value
+      parameter_name: parameter?.value || value
     }))
   }
 
@@ -135,17 +163,16 @@ const AlarmRuleForm = ({
             生产线 <span className="text-destructive">*</span>
           </Label>
           <Select
-            value={formData.production_line_id}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, production_line_id: value }))}
-            disabled={isEdit}
+            value={formData.line_id}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, line_id: value }))}
           >
             <SelectTrigger id="production_line" className="h-10">
               <SelectValue placeholder="请选择生产线" />
             </SelectTrigger>
             <SelectContent>
-              {productionLines?.map(line => (
-                <SelectItem key={line.production_line_id} value={line.production_line_id}>
-                  生产线 #{line.production_line_id}
+              {lineIds?.map(lineId => (
+                <SelectItem key={lineId} value={lineId}>
+                  {lineId === '*' ? '所有生产线' : lineId}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -160,12 +187,12 @@ const AlarmRuleForm = ({
           <Label htmlFor="parameter" className="text-sm font-medium">
             监控参数 <span className="text-destructive">*</span>
           </Label>
-          <Select value={formData.parameter_type} onValueChange={handleParameterChange}>
+          <Select value={formData.parameter_name} onValueChange={handleParameterChange}>
             <SelectTrigger id="parameter" className="h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONITOR_PARAMETERS.map(param => (
+              {ALARM_RULE_PARAMETERS.map(param => (
                 <SelectItem key={param.value} value={param.value}>
                   {param.label}
                 </SelectItem>
@@ -244,38 +271,37 @@ const AlarmRuleForm = ({
 }
 
 export default function AlarmRules() {
-  const { data: alarmRules, isLoading, error } = useAlarmRules()
-  const { data: productionLines } = useProductionData()
-  const { mutate: updateRule, isPending } = useUpdateAlarmRule()
+  const { data: alarmRules, isLoading, error } = useAlarmRulesList()
+  const updateMutation = useUpdateAlarmRule()
+  const createMutation = useCreateAlarmRule()
+  const deleteMutation = useDeleteAlarmRule()
+  const toggleMutation = useToggleAlarmRule()
 
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedRule, setSelectedRule] = useState<ExtendedAlarmRule | undefined>(undefined)
-  const [sortField, setSortField] = useState<SortField>('production_line_id')
+  const [sortField, setSortField] = useState<SortField>('line_id')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
-  // Mock扩展的报警规则数据
+  // 扩展的报警规则数据
   const extendedRules: ExtendedAlarmRule[] = useMemo(() => {
-    if (!alarmRules || !productionLines) return []
+    if (!alarmRules?.items) return []
 
-    return productionLines.map((line, index) => {
-      const existingRule = alarmRules.find(r => r.production_line_id === line.production_line_id)
-      const baseDate = new Date()
-      baseDate.setDate(baseDate.getDate() - Math.floor(Math.random() * 30))
-
+    return alarmRules.items.map((rule: AlarmRule) => {
+      const parameter = ALARM_RULE_PARAMETERS.find(p => p.value === rule.parameter_name)
       return {
-        id: `rule_${line.production_line_id}`,
-        production_line_id: line.production_line_id,
-        parameter_type: 'real_time_diameter',
-        parameter_name: '实时测量直径',
-        lower_limit: existingRule?.lower_limit || Math.random() * 10 + 5,
-        upper_limit: existingRule?.upper_limit || Math.random() * 10 + 20,
-        enabled: existingRule?.enabled || Math.random() > 0.5,
-        created_at: new Date(baseDate.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: new Date(baseDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        id: rule.id.toString(),
+        line_id: rule.line_id,
+        parameter_name: parameter?.value || '',
+        lower_limit: rule.lower_limit || 0,
+        upper_limit: rule.upper_limit || 0,
+        enabled: rule.is_enabled,
+        created_at: rule.created_at,
+        updated_at: rule.updated_at,
       }
     })
-  }, [alarmRules, productionLines])
+  }, [alarmRules])
+
 
   // 排序后的规则
   const sortedRules = useMemo(() => {
@@ -283,7 +309,8 @@ export default function AlarmRules() {
       let aValue: any = a[sortField]
       let bValue: any = b[sortField]
 
-      if (sortField === 'production_line_id') {
+      // 处理不同类型的排序字段
+      if (sortField === 'line_id') {
         aValue = parseInt(aValue)
         bValue = parseInt(bValue)
       } else if (sortField === 'created_at' || sortField === 'updated_at') {
@@ -291,11 +318,16 @@ export default function AlarmRules() {
         bValue = new Date(bValue).getTime()
       }
 
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
+      let result = 0
+      if (aValue > bValue) result = 1
+      else if (aValue < bValue) result = -1
+
+      // 如果主排序字段相等，则按照 parameter_name 排序
+      if (result === 0) {
+        result = (aValue + a.parameter_name).localeCompare(bValue + b.parameter_name)
       }
+
+      return sortDirection === 'asc' ? result : -result
     })
   }, [extendedRules, sortField, sortDirection])
 
@@ -313,22 +345,51 @@ export default function AlarmRules() {
     return sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
   }
 
-  const handleCreateRule = (data: Partial<ExtendedAlarmRule>) => {
-    // Mock创建逻辑
-    toast.success('报警规则创建成功！')
-    setCreateDialogOpen(false)
+  const handleCreateRule = async (data: Partial<ExtendedAlarmRule>) => {
+    if (!data.line_id || !data.parameter_name) {
+      toast.error('请填写必要信息')
+      return
+    }
+
+    const ruleData: AlarmRuleCreate = {
+      line_id: data.line_id,
+      parameter_name: data.parameter_name,
+      lower_limit: data.lower_limit || 0,
+      upper_limit: data.upper_limit || 0,
+      is_enabled: data.enabled || false
+    }
+
+    createMutation.mutate(ruleData, {
+      onSuccess: () => {
+        setCreateDialogOpen(false)
+      }
+    })
   }
 
-  const handleEditRule = (data: Partial<ExtendedAlarmRule>) => {
-    // Mock编辑逻辑
-    toast.success('报警规则更新成功！')
-    setEditDialogOpen(false)
-    setSelectedRule(undefined)
+  const handleEditRule = async (data: Partial<ExtendedAlarmRule>) => {
+    if (!selectedRule?.id) return
+
+    const updates: any = {}
+    if (data.lower_limit !== undefined) updates.lower_limit = data.lower_limit
+    if (data.upper_limit !== undefined) updates.upper_limit = data.upper_limit
+    if (data.enabled !== undefined) updates.is_enabled = data.enabled
+    if (data.parameter_name !== undefined) updates.parameter_name = data.parameter_name
+    if (data.line_id !== undefined) updates.line_id = data.line_id
+
+    updateMutation.mutate({ id: parseInt(selectedRule.id), updates }, {
+      onSuccess: () => {
+        setEditDialogOpen(false)
+        setSelectedRule(undefined)
+      }
+    })
   }
 
-  const handleDeleteRule = (ruleId: string) => {
-    // Mock删除逻辑
-    toast.success('报警规则删除成功！')
+  const handleDeleteRule = async (ruleId: string) => {
+    deleteMutation.mutate(parseInt(ruleId))
+  }
+
+  const handleToggleRule = async (ruleId: string, enabled: boolean) => {
+    toggleMutation.mutate({ id: parseInt(ruleId), enabled })
   }
 
   if (isLoading) {
@@ -344,7 +405,7 @@ export default function AlarmRules() {
       <div className="text-center p-8 bg-destructive/10 rounded-lg">
         <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
         <h2 className="mt-4 text-xl font-semibold text-destructive">加载报警规则失败</h2>
-        <p className="mt-2 text-muted-foreground">{error.message}</p>
+        <p className="mt-2 text-muted-foreground">{error?.message || '加载失败'}</p>
       </div>
     )
   }
@@ -388,10 +449,10 @@ export default function AlarmRules() {
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('production_line_id')}
+                  onClick={() => handleSort('line_id')}
                 >
                   生产线
-                  {getSortIcon('production_line_id')}
+                  {getSortIcon('line_id')}
                 </Button>
               </TableHead>
               <TableHead>监控参数</TableHead>
@@ -427,9 +488,9 @@ export default function AlarmRules() {
             {sortedRules.map((rule) => (
               <TableRow key={rule.id}>
                 <TableCell>
-                  生产线 #{rule.production_line_id}
+                  {rule.line_id === '*' ? '所有生产线' : `${rule.line_id}`}
                 </TableCell>
-                <TableCell>{rule.parameter_name}</TableCell>
+                <TableCell>{ALARM_RULE_PARAMETERS.find(p => p.value === rule.parameter_name)?.label}</TableCell>
                 <TableCell>
                   {rule.lower_limit.toFixed(3)}
                 </TableCell>
@@ -437,7 +498,14 @@ export default function AlarmRules() {
                   {rule.upper_limit.toFixed(3)}
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={rule.enabled ? '已启用' : '已禁用'} />
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={rule.enabled}
+                      onCheckedChange={(enabled) => handleToggleRule(rule.id!, enabled)}
+                      disabled={toggleMutation.isPending}
+                    />
+                    <StatusBadge status={rule.enabled ? '已启用' : '已禁用'} />
+                  </div>
                 </TableCell>
                 <TableCell>
                   {dayjs(rule.created_at).format('YYYY-MM-DD HH:mm:ss')}
@@ -465,7 +533,7 @@ export default function AlarmRules() {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>编辑报警规则: 生产线 #{selectedRule?.production_line_id}</DialogTitle>
+                          <DialogTitle>编辑报警规则: {selectedRule?.line_id === '*' ? '所有生产线' : `${selectedRule?.line_id}`}</DialogTitle>
                         </DialogHeader>
                         {selectedRule && (
                           <AlarmRuleForm
@@ -488,7 +556,7 @@ export default function AlarmRules() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
                           <AlertDialogDescription>
-                            此操作无法撤销。这将永久删除生产线 <strong>#{rule.production_line_id}</strong> 的报警规则。
+                            此操作无法撤销。这将永久删除生产线 <strong>{rule.line_id === '*' ? '所有生产线' : `${rule.line_id}`}</strong> 的报警规则。
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

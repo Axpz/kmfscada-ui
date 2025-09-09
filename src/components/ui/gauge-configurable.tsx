@@ -3,26 +3,37 @@
 import React from 'react'
 import ReactECharts from 'echarts-for-react'
 import { cn } from '@/lib/utils'
+import { SensorValue } from '@/types'
+import { SensorValueView } from './sensor-value-view'
 
-interface SpindleCurrentGaugeProps {
-  value: number
-  max?: number
-  min?: number
+export interface GaugeConfig {
+  title: string
+  unit: string
+  max: number
+  min: number
+  color: string
+  decimalPlaces?: number
+}
+
+interface ConfigurableGaugeProps {
+  sensor: SensorValue
+  config: GaugeConfig
   className?: string
 }
 
 /**
- * Spindle Current Gauge component following shadcn/ui design patterns
- * Displays spindle current with a semi-circular gauge and progress indication
+ * Configurable Gauge component that can display different types of metrics
+ * with configurable titles, units, ranges, and colors
  */
-export const SpindleCurrentGauge: React.FC<SpindleCurrentGaugeProps> = ({
-  value,
-  max = 100,
-  min = 0,
+export const ConfigurableGauge: React.FC<ConfigurableGaugeProps> = ({
+  sensor,
+  config,
   className
 }) => {
+  const { title, unit, max, min, color, decimalPlaces = 1 } = config
+  
   // Calculate the progress percentage for the color mapping
-  const progress = Math.min(value / max, 1)
+  const progress = Math.min(sensor.value / max, 1)
 
   const option = {
     series: [
@@ -40,7 +51,7 @@ export const SpindleCurrentGauge: React.FC<SpindleCurrentGaugeProps> = ({
             width: 12,
             // Use progress-based color mapping
             color: [
-              [progress, '#059669'], // Green color for progress
+              [progress, color], // Configurable color for progress
               [1, 'hsl(var(--muted))'] // Muted color for remaining
             ]
           }
@@ -86,7 +97,7 @@ export const SpindleCurrentGauge: React.FC<SpindleCurrentGaugeProps> = ({
         },
         data: [
           {
-            value: value
+            value: sensor.value
           }
         ]
       }
@@ -95,11 +106,11 @@ export const SpindleCurrentGauge: React.FC<SpindleCurrentGaugeProps> = ({
 
   return (
     <div className={cn(
-      'flex flex-col',
+      'flex flex-col w-64 h-56',
       className
     )}>
       <div className="flex items-center justify-center px-4 pt-3 pb-2">
-        <h3 className="text-sm font-medium">主轴电流</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
       </div>
 
       <div className="flex-1 px-2">
@@ -111,12 +122,11 @@ export const SpindleCurrentGauge: React.FC<SpindleCurrentGaugeProps> = ({
       </div>
 
       <div className="flex items-center justify-center px-4 pb-3">
-        <span className="text-sm">{value.toFixed(1)}</span>
-        <span className="ml-1 text-sm text-muted-foreground">A</span>
+        <SensorValueView sensor={sensor} unit={unit} />
       </div>
     </div>
   )
 }
 
 // Default export for consistency
-export default SpindleCurrentGauge
+export default ConfigurableGauge

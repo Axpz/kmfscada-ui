@@ -1,18 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useProductionData, useCreateExportTask } from '@/hooks/useApi'
-import { DataExportConfig, ProductionDataPoint } from '@/types'
+import { useAvailableProductionLines } from '@/hooks/useProductionLines'
+import { ProductionLineData } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
 import { addDays, format } from 'date-fns'
@@ -20,51 +13,95 @@ import { toast } from 'sonner'
 import {
     Download,
     FileSpreadsheet,
-    FileText,
     Loader2,
     Calendar,
     Settings,
     AlertCircle,
+    Droplet,
+    Thermometer,
+    Zap,
+    Cog,
 } from 'lucide-react'
+import { useSensorDataExport } from '@/hooks/useSensorData'
+import { SensorDataExportFilter } from '@/lib/api-sensor-data'
 
-// 环境数据字段
-const ENV_FIELD_CATEGORIES = {
-    label: '选择环境数据',
-    icon: Settings,
-    fields: [
-        { value: 'fluoride_ion_concentration', label: '氟离子浓度' },
-        // { value: 'temperature', label: '环境温度' },
-        // { value: 'humidity', label: '环境湿度' },
-        // { value: 'pressure', label: '环境压力' },
-        // { value: 'ph_value', label: 'pH值' },
-        // { value: 'conductivity', label: '电导率' },
-        // { value: 'dissolved_oxygen', label: '溶解氧' },
-        // { value: 'turbidity', label: '浊度' },
-    ]
-}
 
-// 生产信息字段
-const PROD_FIELD_CATEGORIES = {
-    label: '选择生产数据',
+// 生产业务数据字段
+const PRODUCTION_BUSINESS_CATEGORIES = {
+    label: '生产业务数据',
     icon: FileSpreadsheet,
     fields: [
-        { value: 'batch_number', label: '生产批号' },
-        { value: 'total_length_produced', label: '生产长度' },
+        { value: 'batch_product_number', label: '生产批号' },
+        { value: 'current_length', label: '生产长度 (米)' },
+        { value: 'target_length', label: '设定长度 (米)' },
+        { value: 'diameter', label: '实时直径 (mm)' },
     ]
 }
 
-// 工艺参数字段
-const PROD_PROCESS_CATEGORIES = {
-    label: '选择工艺参数',
-    icon: Settings,
+// 环境数据字段
+const ENVIRONMENT_CATEGORIES = {
+    label: '环境数据',
+    icon: Droplet,
     fields: [
-        { value: 'body_temperatures', label: '机身温度' },
-        { value: 'flange_temperatures', label: '法兰温度' },
-        { value: 'mold_temperatures', label: '模具温度' },
-        { value: 'screw_motor_speed', label: '螺杆转速' },
-        { value: 'traction_motor_speed', label: '牵引速度' },
-        { value: 'real_time_diameter', label: '实时直径' },
-        { value: 'main_spindle_current', label: '主轴电流' },
+        { value: 'fluoride_concentration', label: '氟离子浓度 (mg/L)' },
+    ]
+}
+
+// 温度传感器组字段
+const TEMPERATURE_CATEGORIES = {
+    label: '温度传感器组 (°C)',
+    icon: Thermometer,
+    fields: [
+        { value: 'temp_body_zone1', label: '机身温度区域1' },
+        { value: 'temp_body_zone2', label: '机身温度区域2' },
+        { value: 'temp_body_zone3', label: '机身温度区域3' },
+        { value: 'temp_body_zone4', label: '机身温度区域4' },
+        { value: 'temp_flange_zone1', label: '法兰温度区域1' },
+        { value: 'temp_flange_zone2', label: '法兰温度区域2' },
+        { value: 'temp_mold_zone1', label: '模具温度区域1' },
+        { value: 'temp_mold_zone2', label: '模具温度区域2' },
+    ]
+}
+
+// 电流传感器组字段
+const CURRENT_CATEGORIES = {
+    label: '电流传感器组 (A)',
+    icon: Zap,
+    fields: [
+        { value: 'current_body_zone1', label: '机身电流区域1' },
+        { value: 'current_body_zone2', label: '机身电流区域2' },
+        { value: 'current_body_zone3', label: '机身电流区域3' },
+        { value: 'current_body_zone4', label: '机身电流区域4' },
+        { value: 'current_flange_zone1', label: '法兰电流区域1' },
+        { value: 'current_flange_zone2', label: '法兰电流区域2' },
+        { value: 'current_mold_zone1', label: '模具电流区域1' },
+        { value: 'current_mold_zone2', label: '模具电流区域2' },
+    ]
+}
+
+// 电机参数字段
+const MOTOR_CATEGORIES = {
+    label: '电机参数',
+    icon: Cog,
+    fields: [
+        { value: 'motor_screw_speed', label: '螺杆转速 (rpm)' },
+        { value: 'motor_screw_torque', label: '螺杆扭矩' },
+        { value: 'motor_current', label: '电机电流 (A)' },
+        { value: 'motor_traction_speed', label: '牵引速度 (m/min)' },
+        { value: 'motor_vacuum_speed', label: '真空速度' },
+    ]
+}
+
+// 收卷机字段
+const WINDER_CATEGORIES = {
+    label: '收卷机',
+    icon: Cog,
+    fields: [
+        { value: 'winder_speed', label: '收卷速度' },
+        { value: 'winder_torque', label: '收卷扭矩' },
+        { value: 'winder_layer_count', label: '收卷层数' },
+        { value: 'winder_tube_speed', label: '收卷管速度' },
+        { value: 'winder_tube_count', label: '收卷管数量' },
     ]
 }
 
@@ -76,16 +113,22 @@ const PRODUCTION_LINE_CATEGORY = {
 
 // 获取所有字段的扁平数组
 const getAllFields = () => {
-    return [...PROD_FIELD_CATEGORIES.fields, ...PROD_PROCESS_CATEGORIES.fields]
+    return [
+        ...PRODUCTION_BUSINESS_CATEGORIES.fields,
+        ...TEMPERATURE_CATEGORIES.fields,
+        ...CURRENT_CATEGORIES.fields,
+        ...MOTOR_CATEGORIES.fields,
+        ...WINDER_CATEGORIES.fields
+    ]
 }
 
 export default function DataExport() {
-    const { data: productionLines, isLoading, error } = useProductionData()
-    const { mutate: createExport, isPending } = useCreateExportTask()
+    const { data: productionLines, isLoading, error } = useAvailableProductionLines()
+    const { mutate: createExport, isPending} = useSensorDataExport()
 
     const [selectedLines, setSelectedLines] = useState<string[]>([])
     const [selectedFields, setSelectedFields] = useState<string[]>([])
-    const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx'>('xlsx')
+    const [exportFormat] = useState<'xlsx'>('xlsx')
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: addDays(new Date(), -7),
         to: new Date(),
@@ -93,22 +136,26 @@ export default function DataExport() {
 
     // 全选生产线
     const handleSelectAllLines = (checked: boolean) => {
-        if (checked && productionLines) {
-            setSelectedLines(productionLines.map(line => line.production_line_id))
+        if (checked && productionLines?.items) {
+            setSelectedLines(productionLines.items.map(line => line.name.toString()))
         } else {
             setSelectedLines([])
         }
     }
 
-
-
     // 按类别全选字段
-    const handleSelectCategoryFields = (categoryType: 'environment' | 'production' | 'process', checked: boolean) => {
-        const categoryFields = categoryType === 'environment'
-            ? ENV_FIELD_CATEGORIES.fields
-            : categoryType === 'production'
-            ? PROD_FIELD_CATEGORIES.fields
-            : PROD_PROCESS_CATEGORIES.fields
+    const handleSelectCategoryFields = (categoryType: 'production' | 'temperature' | 'current' | 'motor' | 'winder' | 'environment', checked: boolean) => {
+        const categoryFields = categoryType === 'production'
+            ? PRODUCTION_BUSINESS_CATEGORIES.fields
+            : categoryType === 'temperature'
+            ? TEMPERATURE_CATEGORIES.fields
+            : categoryType === 'current'
+            ? CURRENT_CATEGORIES.fields
+            : categoryType === 'motor'
+            ? MOTOR_CATEGORIES.fields
+            : categoryType === 'winder'
+            ? WINDER_CATEGORIES.fields
+            : ENVIRONMENT_CATEGORIES.fields
 
         if (checked) {
             setSelectedFields(prev => [
@@ -123,33 +170,45 @@ export default function DataExport() {
     }
 
     // 检查是否全选
-    const isAllLinesSelected = productionLines ? selectedLines.length === productionLines.length : false
+    const isAllLinesSelected = productionLines?.items ? selectedLines.length === productionLines.items.length : false
+    const isALineSelected = selectedLines.length > 0
 
     // 检查类别是否全选
-    const isCategorySelected = (categoryType: 'environment' | 'production' | 'process') => {
-        const categoryFields = categoryType === 'environment'
-            ? ENV_FIELD_CATEGORIES.fields
-            : categoryType === 'production'
-            ? PROD_FIELD_CATEGORIES.fields
-            : PROD_PROCESS_CATEGORIES.fields
+    const isCategorySelected = (categoryType: 'production' | 'temperature' | 'current' | 'motor' | 'winder' | 'environment') => {
+        const categoryFields = categoryType === 'production'
+            ? PRODUCTION_BUSINESS_CATEGORIES.fields
+            : categoryType === 'temperature'
+            ? TEMPERATURE_CATEGORIES.fields
+            : categoryType === 'current'
+            ? CURRENT_CATEGORIES.fields
+            : categoryType === 'motor'
+            ? MOTOR_CATEGORIES.fields
+            : categoryType === 'winder'
+            ? WINDER_CATEGORIES.fields
+            : ENVIRONMENT_CATEGORIES.fields
         return categoryFields.every(field => selectedFields.includes(field.value))
     }
 
     const handleExport = () => {
-        if (!dateRange?.from || !dateRange?.to || selectedLines.length === 0 || selectedFields.length === 0) {
-            toast.error('请完成所有必填项配置！')
+        if (
+            !dateRange?.from || 
+            !dateRange?.to || 
+            ((selectedLines.length === 0 || selectedFields.length === 0) && selectedFields.filter(field => field === 'fluoride_concentration').length === 0)
+        )
+        {
+            toast.error('请确认已选择生产线和数据字段！')
             return
         }
 
-        const config: DataExportConfig = {
+        const filters: SensorDataExportFilter = {
+            line_ids: selectedLines.join(','),
             start_time: format(dateRange.from, 'yyyy-MM-dd'),
             end_time: format(dateRange.to, 'yyyy-MM-dd'),
-            format: exportFormat,
-            fields: selectedFields as (keyof Omit<ProductionDataPoint, 'id' | 'timestamp' | 'production_line_id'>)[],
+            parameter_names: selectedFields.join(','),
         }
 
-        createExport(config, {
-            onSuccess: () => toast.success('已创建新的导出任务！请在导出历史中查看状态。'),
+        createExport(filters, {
+            onSuccess: () => toast.success('已创建新的导出文件！请在导出历史中查看状态。'),
             onError: (err) => toast.error(`导出失败: ${err.message}`),
         })
     }
@@ -208,8 +267,8 @@ export default function DataExport() {
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <ENV_FIELD_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
-                                <h3 className="text-sm font-medium">{ENV_FIELD_CATEGORIES.label}</h3>
+                                <ENVIRONMENT_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{ENVIRONMENT_CATEGORIES.label}</h3>
                                 <span className="text-destructive">*</span>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -224,7 +283,7 @@ export default function DataExport() {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
-                            {ENV_FIELD_CATEGORIES.fields.map(field => (
+                            {ENVIRONMENT_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
                                         id={`field-${field.value}`}
@@ -265,33 +324,33 @@ export default function DataExport() {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
-                            {productionLines?.map(line => (
-                                <div key={line.production_line_id} className="flex items-center space-x-2">
+                            {productionLines?.items?.map(line => (
+                                <div key={line.id} className="flex items-center space-x-2">
                                     <Checkbox
-                                        id={`line-${line.production_line_id}`}
-                                        checked={selectedLines.includes(line.production_line_id)}
+                                        id={`line-${line.name}`}
+                                        checked={selectedLines.includes(line.name.toString())}
                                         onCheckedChange={(checked) => {
                                             setSelectedLines(prev =>
                                                 checked
-                                                    ? [...prev, line.production_line_id]
-                                                    : prev.filter(id => id !== line.production_line_id)
+                                                    ? [...prev, line.name.toString()]
+                                                    : prev.filter(name => name !== line.name.toString())
                                             )
                                         }}
                                     />
-                                    <Label htmlFor={`line-${line.production_line_id}`} className="text-sm">
-                                        生产线 #{line.production_line_id}
+                                    <Label htmlFor={`line-${line.name}`} className="text-sm">
+                                        {line.name}
                                     </Label>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 生产信息字段 */}
+                    {/* 生产业务数据字段 */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <PROD_FIELD_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
-                                <h3 className="text-sm font-medium">{PROD_FIELD_CATEGORIES.label}</h3>
+                                <PRODUCTION_BUSINESS_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{PRODUCTION_BUSINESS_CATEGORIES.label}</h3>
                                 <span className="text-destructive">*</span>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -299,6 +358,7 @@ export default function DataExport() {
                                     id="select-all-production"
                                     checked={isCategorySelected('production')}
                                     onCheckedChange={(checked) => handleSelectCategoryFields('production', checked as boolean)}
+                                    disabled={!isALineSelected}
                                 />
                                 <Label htmlFor="select-all-production" className="text-xs text-muted-foreground">
                                     全选
@@ -306,7 +366,7 @@ export default function DataExport() {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
-                            {PROD_FIELD_CATEGORIES.fields.map(field => (
+                            {PRODUCTION_BUSINESS_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
                                         id={`field-${field.value}`}
@@ -318,6 +378,7 @@ export default function DataExport() {
                                                     : prev.filter(v => v !== field.value)
                                             )
                                         }}
+                                        disabled={!isALineSelected}
                                     />
                                     <Label htmlFor={`field-${field.value}`} className="text-sm">
                                         {field.label}
@@ -327,27 +388,28 @@ export default function DataExport() {
                         </div>
                     </div>
 
-                    {/* 工艺参数字段 */}
+                    {/* 温度传感器组字段 */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <PROD_PROCESS_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
-                                <h3 className="text-sm font-medium">{PROD_PROCESS_CATEGORIES.label}</h3>
+                                <TEMPERATURE_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{TEMPERATURE_CATEGORIES.label}</h3>
                                 <span className="text-destructive">*</span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Checkbox
-                                    id="select-all-process"
-                                    checked={isCategorySelected('process')}
-                                    onCheckedChange={(checked) => handleSelectCategoryFields('process', checked as boolean)}
+                                    id="select-all-temperature"
+                                    checked={isCategorySelected('temperature')}
+                                    onCheckedChange={(checked) => handleSelectCategoryFields('temperature', checked as boolean)}
+                                    disabled={!isALineSelected}
                                 />
-                                <Label htmlFor="select-all-process" className="text-xs text-muted-foreground">
+                                <Label htmlFor="select-all-temperature" className="text-xs text-muted-foreground">
                                     全选
                                 </Label>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
-                            {PROD_PROCESS_CATEGORIES.fields.map(field => (
+                            {TEMPERATURE_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
                                         id={`field-${field.value}`}
@@ -359,6 +421,7 @@ export default function DataExport() {
                                                     : prev.filter(v => v !== field.value)
                                             )
                                         }}
+                                        disabled={!isALineSelected}
                                     />
                                     <Label htmlFor={`field-${field.value}`} className="text-sm">
                                         {field.label}
@@ -368,38 +431,145 @@ export default function DataExport() {
                         </div>
                     </div>
 
-                    <p className="text-xs text-muted-foreground">
-                        选择要导出的生产线和数据字段类型
-                    </p>
+                    {/* 电流传感器组字段 */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <CURRENT_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{CURRENT_CATEGORIES.label}</h3>
+                                <span className="text-destructive">*</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="select-all-current"
+                                    checked={isCategorySelected('current')}
+                                    onCheckedChange={(checked) => handleSelectCategoryFields('current', checked as boolean)}
+                                    disabled={!isALineSelected}
+                                />
+                                <Label htmlFor="select-all-current" className="text-xs text-muted-foreground">
+                                    全选
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                            {CURRENT_CATEGORIES.fields.map(field => (
+                                <div key={field.value} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`field-${field.value}`}
+                                        checked={selectedFields.includes(field.value)}
+                                        onCheckedChange={(checked) => {
+                                            setSelectedFields(prev =>
+                                                checked
+                                                    ? [...prev, field.value]
+                                                    : prev.filter(v => v !== field.value)
+                                            )
+                                        }}
+                                        disabled={!isALineSelected}
+                                    />
+                                    <Label htmlFor={`field-${field.value}`} className="text-sm">
+                                        {field.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 电机参数字段 */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <MOTOR_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{MOTOR_CATEGORIES.label}</h3>
+                                <span className="text-destructive">*</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="select-all-motor"
+                                    checked={isCategorySelected('motor')}
+                                    onCheckedChange={(checked) => handleSelectCategoryFields('motor', checked as boolean)}
+                                    disabled={!isALineSelected}
+                                />
+                                <Label htmlFor="select-all-motor" className="text-xs text-muted-foreground">
+                                    全选
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                            {MOTOR_CATEGORIES.fields.map(field => (
+                                <div key={field.value} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`field-${field.value}`}
+                                        checked={selectedFields.includes(field.value)}
+                                        onCheckedChange={(checked) => {
+                                            setSelectedFields(prev =>
+                                                checked
+                                                    ? [...prev, field.value]
+                                                    : prev.filter(v => v !== field.value)
+                                            )
+                                        }}
+                                        disabled={!isALineSelected}
+                                    />
+                                    <Label htmlFor={`field-${field.value}`} className="text-sm">
+                                        {field.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 收卷机字段 */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <WINDER_CATEGORIES.icon className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium">{WINDER_CATEGORIES.label}</h3>
+                                <span className="text-destructive">*</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="select-all-winder"
+                                    checked={isCategorySelected('winder')}
+                                    onCheckedChange={(checked) => handleSelectCategoryFields('winder', checked as boolean)}
+                                    disabled={!isALineSelected}
+                                />
+                                <Label htmlFor="select-all-winder" className="text-xs text-muted-foreground">
+                                    全选
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                            {WINDER_CATEGORIES.fields.map(field => (
+                                <div key={field.value} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`field-${field.value}`}
+                                        checked={selectedFields.includes(field.value)}
+                                        onCheckedChange={(checked) => {
+                                            setSelectedFields(prev =>
+                                                checked
+                                                    ? [...prev, field.value]
+                                                    : prev.filter(v => v !== field.value)
+                                            )
+                                        }}
+                                        disabled={!isALineSelected}
+                                    />
+                                    <Label htmlFor={`field-${field.value}`} className="text-sm">
+                                        {field.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
-                {/* 导出格式选择 */}
+                {/* 导出格式显示 */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="text-sm font-medium">选择导出格式</h3>
-                        <span className="text-destructive">*</span>
+                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-sm font-medium">导出格式</h3>
                     </div>
-                    <div className="grid gap-2">
-                        <Select value={exportFormat} onValueChange={(v: 'csv' | 'xlsx') => setExportFormat(v)}>
-                            <SelectTrigger className="max-w-xs h-8">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="xlsx">
-                                    <div className="flex items-center">
-                                        <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                        Excel (.xlsx)
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="csv">
-                                    <div className="flex items-center">
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        CSV (.csv)
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Excel (.xlsx)</span>
                     </div>
                 </div>
 
@@ -407,7 +577,14 @@ export default function DataExport() {
                 <div className="pt-6 flex justify-center">
                     <Button
                         onClick={handleExport}
-                        disabled={isPending || !dateRange?.from || !dateRange?.to || selectedLines.length === 0 || selectedFields.length === 0}
+                        disabled={
+                            (
+                                isPending || 
+                                !dateRange?.from || 
+                                !dateRange?.to || 
+                                selectedLines.length === 0 || selectedFields.length === 0
+                            ) && selectedFields.filter(field => field === 'fluoride_concentration').length === 0
+                        }
                         className="h-10"
                     >
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -416,14 +593,6 @@ export default function DataExport() {
                     </Button>
                 </div>
             </div>
-
-            {/* 空状态提示 */}
-            {productionLines?.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                    <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>暂无可用的生产线数据</p>
-                </div>
-            )}
         </div>
     )
 }

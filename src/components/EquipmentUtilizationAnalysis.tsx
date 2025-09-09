@@ -28,6 +28,8 @@ import {
   Clock,
   Gauge,
 } from 'lucide-react'
+import { useAvailableProductionLines } from '@/hooks/useProductionLines'
+import { useUtilizationData } from '@/hooks/useSensorData'
 
 // 设备状态颜色配置
 const STATUS_COLORS = {
@@ -37,17 +39,23 @@ const STATUS_COLORS = {
 }
 
 // 设备利用率饼图组件
-const UtilizationPieChart = ({
-  productionLines,
-  isLoadingLines,
-  selectedLineIds,
-  onSelectedLineIdsChange,
-}: {
-  productionLines: any[]
-  isLoadingLines: boolean
-  selectedLineIds: string[]
-  onSelectedLineIdsChange: (ids: string[]) => void
-}) => {
+const UtilizationPieChart = () => {
+
+  const { data: availableLines, isLoading: isLoadingLines } = useAvailableProductionLines()
+  const [selectedLineIds, setSelectedLineIds] = useState<string[]>([])
+
+
+  React.useEffect(() => {
+    if (selectedLineIds.length === 0 && availableLines && availableLines.items.length > 0) {
+      const defaultLines = availableLines?.items.map(item => item.name)
+      setSelectedLineIds(defaultLines)
+    }
+  }, [availableLines, selectedLineIds.length])
+
+  const onSelectedLineIdsChange = (ids: string[]) => {
+    setSelectedLineIds(ids)
+  }
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
     from: addDays(new Date(), -30),
     to: new Date()
@@ -62,80 +70,71 @@ const UtilizationPieChart = ({
     return { from: addDays(new Date(), -30), to: new Date() }
   }, [dateRange])
 
-  // 生成设备利用率 mock 数据
-  const generateUtilizationData = (lineId: string, from: Date, to: Date) => {
-    const totalHours = (to.getTime() - from.getTime()) / (1000 * 60 * 60)
+  const { allUtilizationData, isLoading, hasError } = useUtilizationData(
+    selectedLineIds, 
+    format(from, 'yyyy-MM-dd'), 
+    format(to, 'yyyy-MM-dd')
+  )
 
-    // 模拟不同生产线的利用率
-    const baseUtilization = 0.75 + (parseInt(lineId) % 3) * 0.05 // 75%-85%基础利用率
-    const productionHours = totalHours * (baseUtilization + Math.random() * 0.1 - 0.05)
-    const idleHours = totalHours * (0.1 + Math.random() * 0.08)
-    const offlineHours = Math.max(0, totalHours - productionHours - idleHours)
-
-    return {
-      lineId,
-      totalHours: Number(totalHours.toFixed(1)),
-      productionHours: Number(productionHours.toFixed(1)),
-      idleHours: Number(idleHours.toFixed(1)),
-      offlineHours: Number(offlineHours.toFixed(1)),
-      utilizationRate: Number((productionHours / totalHours * 100).toFixed(1)),
-    }
-  }
-
-  // 使用 useQueries 并行请求多条生产线数据
-  const utilizationQueries = useQueries({
-    queries: selectedLineIds.map(lineId => ({
-      queryKey: ['equipment-utilization', lineId, format(from, 'yyyy-MM-dd'), format(to, 'yyyy-MM-dd')],
-      queryFn: () => {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            resolve(generateUtilizationData(lineId, from, to))
-          }, 200 + Math.random() * 300)
-        })
-      },
-      enabled: !!(lineId && from && to)
-    }))
-  })
-
-  const isLoading = utilizationQueries.some(query => query.isLoading)
-  const hasError = utilizationQueries.some(query => query.error)
-  const allUtilizationData = utilizationQueries.map(query => query.data).filter(Boolean) as any[]
+  // 调试信息
+  console.log('------------allUtilizationData', allUtilizationData)
+  console.log('------------selectedLineIds', selectedLineIds)
+  console.log('------------dateRange', { from: format(from, 'yyyy-MM-dd'), to: format(to, 'yyyy-MM-dd') })
 
   // 生产线选项
-  const productionLineOptions = productionLines?.map(line => ({
-    value: line.production_line_id,
-    label: `生产线 #${line.production_line_id}`
+  const productionLineOptions = availableLines?.items?.map(line => ({
+    value: line.name,
+    label: line.name
   })) || []
 
   // 为每条生产线生成饼图数据
   const pieChartsData = useMemo(() => {
-    return allUtilizationData.map(data => {
-      const totalHours = data.totalHours
-      return {
-        lineId: data.lineId,
-        utilizationRate: data.utilizationRate,
-        pieData: [
-          {
-            name: '生产中',
-            value: data.productionHours,
-            color: STATUS_COLORS.production,
-            percentage: ((data.productionHours / totalHours) * 100).toFixed(1)
-          },
-          {
-            name: '空闲中',
-            value: data.idleHours,
-            color: STATUS_COLORS.idle,
-            percentage: ((data.idleHours / totalHours) * 100).toFixed(1)
-          },
-          {
-            name: '离线中',
-            value: data.offlineHours,
-            color: STATUS_COLORS.offline,
-            percentage: ((data.offlineHours / totalHours) * 100).toFixed(1)
-          },
-        ].filter(item => item.value > 0)
-      }
-    })
+    return allUtilizationData
+      .filter((data): data is NonNullable<typeof data> => data != null) // 类型守卫
+      .map(data => {
+        const totalSeconds = data.total_run_time_seconds + data.total_idle_time_seconds + data.total_offline_time_seconds
+        
+        // 如果总时间为0，返回默认数据
+        if (totalSeconds === 0) {
+          return {
+            lineId: data.line_id,
+            utilizationRate: 0,
+            pieData: [
+              {
+                name: '离线中',
+                value: 1, // 显示一个小的离线状态
+                color: STATUS_COLORS.offline,
+                percentage: '100.0'
+              }
+            ]
+          }
+        }
+        
+        return {
+          lineId: data.line_id,
+          utilizationRate: ((data.total_run_time_seconds / totalSeconds) * 100).toFixed(1),
+          pieData: [
+            {
+              name: '生产中',
+              value: data.total_run_time_seconds/3600,
+              color: STATUS_COLORS.production,
+              percentage: ((data.total_run_time_seconds / totalSeconds) * 100).toFixed(1)
+            },
+            {
+              name: '空闲中',
+              value: data.total_idle_time_seconds/3600,
+              color: STATUS_COLORS.idle,
+              percentage: ((data.total_idle_time_seconds / totalSeconds) * 100).toFixed(1)
+            },
+            {
+              name: '离线中',
+              value: data.total_offline_time_seconds/3600,
+              color: STATUS_COLORS.offline,
+              percentage: ((data.total_offline_time_seconds / totalSeconds) * 100).toFixed(1)
+            },
+          ]
+        }
+      })
   }, [allUtilizationData])
 
   return (
@@ -226,6 +225,16 @@ const UtilizationPieChart = ({
               <p>请选择要分析的生产线</p>
             </div>
           )}
+          {!isLoading && !hasError && pieChartsData.length === 0 && selectedLineIds.length > 0 && (
+            <div className="flex flex-col justify-center items-center h-[400px] text-muted-foreground">
+              <Gauge className="h-12 w-12 mb-4" />
+              <p className="text-lg font-medium mb-2">暂无数据</p>
+              <p className="text-sm text-center max-w-md">
+                所选时间范围内没有找到设备利用率数据。<br />
+                请尝试选择其他时间范围或检查数据源。
+              </p>
+            </div>
+          )}
           {!isLoading && !hasError && pieChartsData.length > 0 && (
             <div className={`grid gap-6 ${pieChartsData.length === 1 ? 'grid-cols-1' :
                 pieChartsData.length === 2 ? 'grid-cols-1 lg:grid-cols-2' :
@@ -236,7 +245,7 @@ const UtilizationPieChart = ({
                 <Card key={chartData.lineId} className="relative">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">
-                      生产线 #{chartData.lineId}
+                      {chartData.lineId}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -512,16 +521,6 @@ interface EquipmentUtilizationAnalysisProps {
 }
 
 export default function EquipmentUtilizationAnalysis({ showTitle = false }: EquipmentUtilizationAnalysisProps) {
-  const { data: productionLines, isLoading: isLoadingLines } = useProductionData()
-  const [selectedLineIds, setSelectedLineIds] = useState<string[]>([])
-
-  // 设置默认选择的生产线（前3条）
-  React.useEffect(() => {
-    if (selectedLineIds.length === 0 && productionLines && productionLines.length > 0) {
-      const defaultLines = productionLines.slice(0, 3).map(line => line.production_line_id)
-      setSelectedLineIds(defaultLines)
-    }
-  }, [productionLines, selectedLineIds.length])
 
   return (
     <div className="space-y-6">
@@ -537,18 +536,7 @@ export default function EquipmentUtilizationAnalysis({ showTitle = false }: Equi
         </div>
       )}
 
-      <UtilizationPieChart
-        productionLines={productionLines || []}
-        isLoadingLines={isLoadingLines}
-        selectedLineIds={selectedLineIds}
-        onSelectedLineIdsChange={setSelectedLineIds}
-      />
-
-      {/* <UtilizationTable
-        productionLines={productionLines || []}
-        selectedLineIds={selectedLineIds}
-        isLoadingLines={isLoadingLines}
-      /> */}
+      <UtilizationPieChart />
     </div>
   )
 }
