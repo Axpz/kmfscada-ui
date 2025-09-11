@@ -2,6 +2,7 @@
 export * from './api-client'
 export * from './api-alarm-rules'
 export * from './api-alarm-records'
+export * from './api-audit-logs'
 
 // 重新导出常用类型
 export type { 
@@ -15,7 +16,11 @@ export type {
   AlarmRecord,
   AlarmRecordAcknowledge,
   AlarmRecordFilter,
-  AlarmRecordListResponse
+  AlarmRecordListResponse,
+  AuditLog,
+  AuditLogCreate,
+  AuditLogFilter,
+  AuditLogListResponse
 } from '@/types'
 
 // 重新导出 API 客户端实例
@@ -40,3 +45,10 @@ export {
   acknowledgeAllAlarmRecords,
   getAlarmRecordsList,
 } from './api-alarm-records'
+
+// 导出所有审计日志相关的 API 函数
+export {
+  getAuditLogsList,
+  createAuditLog,
+  getAuditLogById,
+} from './api-audit-logs'

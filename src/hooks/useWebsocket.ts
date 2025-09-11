@@ -45,8 +45,10 @@ export function useWebSocket(
   const realtimeDataMapRef = useRef<Map<string, ProductionLineData | null>>(new Map());
 
   useEffect(() => {
-    // 1. 在组件挂载时连接 WebSocket
-    wsManager.connect(url);
+    // 1. 在组件挂载时连接 WebSocket（如果未连接）
+    if (!wsManager.isConnected()) {
+      wsManager.connect(url);
+    }
 
     // 2. 订阅连接状态变化
     const unsubscribeStatus = wsManager.onStatusChange(newStatus => {
@@ -123,11 +125,11 @@ export function useWebSocket(
 
     // 4. 返回的清理函数，在组件卸载时执行
     return () => {
-      console.log('Component unmounting, disconnecting WebSocket...');
+      console.log('Component unmounting, cleaning up subscriptions...');
       unsubscribeStatus();
       unsubscribeMessage();
-
-      wsManager.disconnect();
+      // 注意：不在这里断开 WebSocket 连接，因为其他组件可能还在使用
+      // WebSocket 连接会在所有组件都卸载后自动断开
     };
   }, [url, messageType, selectedLineId]);
 

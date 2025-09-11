@@ -10,6 +10,7 @@ import React, {
 import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import { Role } from '@/types'
+import { useAuthSignin } from '@/hooks/useApi'
 
 interface AuthContextType {
   user: SupabaseUser | null
@@ -26,28 +27,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [role, setRole] = useState<Role | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      const currentUser = session?.user ?? null
-      const currentRole = (currentUser?.app_metadata?.role as Role) ?? null
-      setUser(currentUser)
-      setRole(currentRole)
-      setLoading(false)
-      setInitialized(true)
+      setLoading(true)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Session fetch error:', error)
+          setUser(null)
+          setRole(null)
+        } else {
+          const currentUser = session?.user ?? null
+          const currentRole = currentUser?.user_metadata?.role ?? 'user' as Role
+          setUser(currentUser)
+          setRole(currentRole)
+        }
+      } catch (error) {
+        console.error('Session fetch error:', error)
+        setUser(null)
+        setRole(null)
+      } finally {
+        setLoading(false)
+        setInitialized(true)
+      }
     }
 
     fetchSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event: string, session: Session | null) => {
-        const currentUser = session?.user ?? null
-        const currentRole = (currentUser?.app_metadata?.role as Role) ?? null
-        setUser(currentUser)
-        setRole(currentRole)
+      (event: string, session: Session | null) => {
+        console.log('Auth state change:', event, session?.user?.id)
+        
+        // 如果是 SIGNED_OUT 事件，确保清除状态
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setRole(null)
+        } else {
+          const currentUser = session?.user ?? null
+          const currentRole = (currentUser?.user_metadata?.role as Role) ?? null
+          setUser(currentUser)
+          setRole(currentRole)
+        }
         setLoading(false)
         setInitialized(true)
       }
@@ -64,10 +88,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setRole(null)
-    window.location.href = '/login'
+    setLoading(true)
+    try {
+      // 先清除本地状态
+      setUser(null)
+      setRole(null)
+      
+      // 清除所有可能的本地存储
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      // 登出 Supabase
+      await supabase.auth.signOut()
+      
+      // 强制刷新页面以确保完全清除状态
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Sign out error:', error)
+      // 即使出错也要清除本地状态
+      setUser(null)
+      setRole(null)
+      window.location.href = '/login'
+    }
   }
 
   const hasRole = useCallback((required: Role | Role[]) => {

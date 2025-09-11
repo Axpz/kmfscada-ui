@@ -45,6 +45,7 @@ import { toast } from 'sonner'
 import { Factory, Plus, Trash2, Loader2, Edit } from 'lucide-react' 
 
 import { StatusBadge } from '@/components/ui/status-badge';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 
 // --- Production Line Form ---
 const ProductionLineForm = ({
@@ -172,6 +173,9 @@ const ProductionLineForm = ({
 
 // --- Main Component ---
 export default function ProductionLineManagement() {
+  const { hasRole } = useSupabaseAuth()
+  const isDisabled = !hasRole(['admin', 'super_admin'])
+
   const [isAddDialogOpen, setAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedLine, setSelectedLine] = useState<ProductionLine | undefined>(undefined)
@@ -245,7 +249,7 @@ export default function ProductionLineManagement() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={isDisabled}>
               <Plus className="mr-2 h-4 w-4" />
               添加生产线
             </Button>
@@ -288,7 +292,7 @@ export default function ProductionLineManagement() {
                     <Switch
                       checked={line.enabled ?? false}
                       onCheckedChange={(enabled) => handleToggleEnabled(line, enabled)}
-                      disabled={isDeleting}
+                      disabled={isDeleting || isDisabled}
                     />
                     <StatusBadge status={(line.enabled ?? false) ? '已启用' : '已禁用'} />
                   </div>
@@ -305,7 +309,7 @@ export default function ProductionLineManagement() {
                         <Button variant="ghost" size="sm" onClick={() => {
                           setSelectedLine(line);
                           setEditDialogOpen(true);
-                        }}>
+                        }} disabled={isDisabled}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -329,7 +333,7 @@ export default function ProductionLineManagement() {
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={isDisabled}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>

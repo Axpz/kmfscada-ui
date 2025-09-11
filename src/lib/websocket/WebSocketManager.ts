@@ -4,7 +4,6 @@
  */
 
 import ReconnectingWebSocket, { Options as RWSOptions } from 'reconnecting-websocket'
-
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error'
 
 export interface WebSocketMessage {
@@ -29,6 +28,9 @@ export class WebSocketManager {
   // 订阅者管理
   private messageHandlers = new Map<string, Set<MessageHandler>>()
   private statusHandlers = new Set<StatusHandler>()
+  
+  // 连接引用计数
+  private connectionRefCount = 0
   
   // 心跳管理
   private heartbeatTimer: NodeJS.Timeout | null = null
@@ -61,14 +63,21 @@ export class WebSocketManager {
     if (url) this.url = url
     
     if (!this.url) {
-      throw new Error('WebSocket URL is required')
+      const error = new Error('WebSocket URL is required')
+      console.log('ERROR', 'WebSocket URL is required')
+      throw error
     }
+
+    // 增加引用计数
+    this.connectionRefCount++
+    console.log('INFO', `Connection requested, ref count: ${this.connectionRefCount}`)
 
     if (this.rws && (this.rws.readyState === WebSocket.CONNECTING || this.rws.readyState === WebSocket.OPEN)) {
-      console.warn('WebSocket is already connected or connecting')
-      return
+      console.log('INFO', 'WebSocket already connected, returning existing connection')
+      return Promise.resolve()
     }
 
+    console.log('INFO', `Attempting to connect to WebSocket: ${this.url}`)
     this.setStatus('connecting')
     
     return new Promise((resolve, reject) => {
@@ -77,20 +86,42 @@ export class WebSocketManager {
         this.rws = new ReconnectingWebSocket(this.url, [], this.options)
         this.setupEventHandlers(resolve, reject)
       } catch (error) {
+        console.log('ERROR', 'Failed to create WebSocket connection', error)
         this.setStatus('error')
+        this.connectionRefCount-- // 连接失败时减少引用计数
         reject(error)
       }
     })
   }
 
   /**
-   * 断开连接
+   * 断开连接（智能断开，基于引用计数）
    */
   disconnect(): void {
+    // 减少引用计数
+    this.connectionRefCount = Math.max(0, this.connectionRefCount - 1)
+    console.log('INFO', `Disconnect requested, ref count: ${this.connectionRefCount}`)
+
+    // 只有当引用计数为 0 时才真正断开连接
+    if (this.connectionRefCount > 0) {
+      console.log('INFO', 'Other components still using WebSocket, keeping connection alive')
+      return
+    }
+
+    console.log('INFO', 'No more references, disconnecting WebSocket')
+    this.forceDisconnect()
+  }
+
+  /**
+   * 强制断开连接（忽略引用计数）
+   */
+  forceDisconnect(): void {
+    console.log('INFO', 'Force disconnecting WebSocket')
+    this.connectionRefCount = 0
     this.stopHeartbeat()
     
     if (this.rws) {
-      this.rws.close(1000, 'Manual disconnect')
+      this.rws.close(1000, 'Force disconnect')
       this.rws = null
     }
 
@@ -225,6 +256,7 @@ export class WebSocketManager {
 
     // 连接打开
     this.rws.addEventListener('open', () => {
+      console.log('SUCCESS', `WebSocket connected to: ${this.url}`)
       console.log('WebSocket connected to:', this.url)
       this.setStatus('connected')
       this.startHeartbeat()
@@ -238,6 +270,11 @@ export class WebSocketManager {
 
     // 连接关闭
     this.rws.addEventListener('close', (event) => {
+      console.log('WARNING', `WebSocket closed: ${event.code} - ${event.reason}`, {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean
+      })
       console.log('WebSocket closed:', event.code, event.reason)
       this.stopHeartbeat()
       
@@ -252,6 +289,11 @@ export class WebSocketManager {
 
     // 连接错误
     this.rws.addEventListener('error', (error) => {
+      console.log('ERROR', 'WebSocket connection error', {
+        error: error,
+        url: this.url,
+        readyState: this.rws?.readyState
+      })
       console.error('WebSocket error:', error)
       this.setStatus('error')
       this.stopHeartbeat()
@@ -333,6 +375,7 @@ export class WebSocketManager {
       lastHeartbeat: this.lastHeartbeat,
       messageHandlers: this.messageHandlers.size,
       statusHandlers: this.statusHandlers.size,
+      connectionRefCount: this.connectionRefCount,
       readyState: this.rws?.readyState,
       retryCount: this.rws?.retryCount || 0,
     }

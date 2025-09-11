@@ -53,7 +53,7 @@ export default function DataServiceTest() {
   // 连接 WebSocket
   const handleConnectWS = async () => {
     try {
-      await wsManager.connect('ws://localhost:8080')
+      await wsManager.connect('ws://localhost:8080/api/v1/ws')
     } catch (error) {
       console.error('Failed to connect WebSocket:', error)
     }

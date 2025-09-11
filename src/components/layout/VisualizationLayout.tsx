@@ -4,7 +4,7 @@ import React from 'react'
 import AppLayout from './AppLayout'
 import VisualizationSidebar from './VisualizationSidebar'
 import { Role } from '@/types';
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -19,10 +19,10 @@ export default function VisualizationLayout({
   title = "可视化中心",
   description = "数据可视化与分析展示"
 }: VisualizationLayoutProps) {
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 检查用户是否有可视化功能权限
-  if (!hasRole(['superadmin', 'admin', 'operator'] as Role[])) {
+  if (!hasRole(['super_admin', 'admin', 'user'] as Role[])) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">

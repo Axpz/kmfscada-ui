@@ -3,7 +3,7 @@
 import React from 'react'
 import AppLayout from './AppLayout'
 import ManagementSidebar from './ManagementSidebar'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -18,10 +18,10 @@ export default function ManagementLayout({
   title = "系统管理",
   description = "管理系统配置和用户权限"
 }: ManagementLayoutProps) {
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 检查用户是否有管理权限
-  if (!hasRole(['superadmin'])) {
+  if (!hasRole(['user', 'admin', 'super_admin'])) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">

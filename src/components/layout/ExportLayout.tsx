@@ -3,7 +3,7 @@
 import React from 'react'
 import AppLayout from './AppLayout'
 import ExportSidebar from './ExportSidebar'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Shield } from 'lucide-react'
 
 interface ExportLayoutProps {
@@ -17,10 +17,10 @@ export default function ExportLayout({
   title = "数据导出中心",
   description = "配置和管理数据导出任务"
 }: ExportLayoutProps) {
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 检查用户是否有导出权限
-  if (!hasRole(['superadmin'])) {
+  if (!hasRole(['super_admin'])) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">

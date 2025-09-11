@@ -105,7 +105,7 @@ const badgeConfigs: Record<string, BadgeConfig> = {
   },
 
   // 用户角色
-  'superadmin': {
+  'super_admin': {
     label: '超级管理员',
     className: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800/50',
     icon: Crown,

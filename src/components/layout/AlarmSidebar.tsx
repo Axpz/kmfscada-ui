@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Bell, AlertTriangle, History } from 'lucide-react'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Role } from '@/types'
 
 interface AlarmSidebarProps {
@@ -19,20 +19,20 @@ const alarmNavItems = [
     label: '报警历史',
     icon: History,
     description: '查看和管理历史报警记录',
-    requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+    requiredRole: ['superadmin', 'admin', 'user'] as Role[]
   },
   {
     href: '/alarms/rules',
     label: '报警规则',
     icon: AlertTriangle,
     description: '配置报警阈值和规则',
-    requiredRole: ['superadmin', 'admin'] as Role[]
+    requiredRole: ['superadmin', 'admin', 'user'] as Role[]
   }
 ]
 
 export default function AlarmSidebar({ className }: AlarmSidebarProps) {
   const pathname = usePathname()
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 过滤用户有权限访问的导航项
   const filteredNavItems = alarmNavItems.filter(item => {

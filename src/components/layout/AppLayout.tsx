@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '../../contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '../ui/button'
@@ -31,12 +31,12 @@ const mainNavigationItems: { href: string; label: string; icon: React.ElementTyp
   // { href: '/workshop', label: '车间大屏', icon: Monitor, requiredRole: null },
   { href: '/visualization', label: '可视化中心', icon: BarChart3, requiredRole: null },
   { href: '/alarms/history', label: '告警中心', icon: Bell, requiredRole: null },
-  { href: '/export', label: '数据导出', icon: Download, requiredRole: ['superadmin'] },
-  { href: '/management/users', label: '系统管理', icon: Users, requiredRole: ['superadmin'] },
+  { href: '/export', label: '数据导出', icon: Download, requiredRole: ['super_admin'] },
+  { href: '/management/users', label: '系统管理', icon: Users, requiredRole: ['super_admin'] },
 ]
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { user, hasRole, initialized } = useAuth()
+  const { user, hasRole, initialized } = useSupabaseAuth()
   const router = useRouter()
   const pathname = usePathname()
 

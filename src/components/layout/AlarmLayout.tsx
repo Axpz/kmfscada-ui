@@ -3,7 +3,7 @@
 import React from 'react'
 import AppLayout from './AppLayout'
 import AlarmSidebar from './AlarmSidebar'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Bell } from 'lucide-react'
 import { Role } from '@/types'
 
@@ -18,10 +18,10 @@ export default function AlarmLayout({
   title = "报警中心",
   description = "查看历史报警记录并配置报警规则"
 }: AlarmLayoutProps) {
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 检查用户是否有报警功能权限
-  if (!hasRole(['superadmin', 'admin', 'operator'] as Role[])) {
+  if (!hasRole(['super_admin', 'admin', 'user'] as Role[])) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
 import { Eye, BarChart3, TrendingUp, Camera, Cpu, AlertTriangle, Package, ChevronDown, ChevronRight } from 'lucide-react'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Role } from '@/types'
 
 interface VisualizationSidebarProps {
@@ -29,49 +29,49 @@ const visualizationNavItems: NavItem[] = [
     label: '数据概览',
     icon: Eye,
     description: '生产线数据概览',
-    requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+    requiredRole: ['super_admin', 'admin', 'user'] as Role[]
   },
   {
     href: '/visualization/analysis',
     label: '统计分析',
     icon: TrendingUp,
     description: '历史数据分析和趋势统计',
-    requiredRole: ['superadmin', 'admin', 'operator'] as Role[],
+    requiredRole: ['super_admin', 'admin', 'user'] as Role[],
     children: [
       {
         href: '/visualization/analysis',
         label: '生产数据分析',
         icon: TrendingUp,
         description: '历史数据分析和趋势统计',
-        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+        requiredRole: ['super_admin', 'admin', 'user'] as Role[]
       },
       {
         href: '/visualization/analysis/equipment-utilization',
         label: '设备利用率分析',
         icon: Cpu,
         description: '设备运行效率和利用率统计分析',
-        requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+        requiredRole: ['super_admin', 'admin', 'user'] as Role[]
       },
       // {
       //   href: '/visualization/analysis/energy-consumption',
       //   label: '能耗分析',
       //   icon: AlertTriangle,
       //   description: '能耗统计分析',
-      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      //   requiredRole: ['super_admin', 'admin', 'user'] as Role[]
       // },
       // {
       //   href: '/visualization/analysis/equipment-failure',
       //   label: '设备故障率分析',
       //   icon: AlertTriangle,
       //   description: '设备故障频率和维护统计分析',
-      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      //   requiredRole: ['super_admin', 'admin', 'user'] as Role[]
       // },
       // {
       //   href: '/visualization/analysis/material-utilization',
       //   label: '原材料利用率分析',
       //   icon: Package,
       //   description: '原材料消耗和利用效率分析',
-      //   requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+      //   requiredRole: ['super_admin', 'admin', 'user'] as Role[]
       // }
     ]
   },
@@ -80,13 +80,13 @@ const visualizationNavItems: NavItem[] = [
     label: '摄像头监控',
     icon: Camera,
     description: '实时摄像头数据流监控和分析',
-    requiredRole: ['superadmin', 'admin', 'operator'] as Role[]
+    requiredRole: ['super_admin', 'admin', 'user'] as Role[]
   }
 ]
 
 export default function VisualizationSidebar({ className }: VisualizationSidebarProps) {
   const pathname = usePathname()
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 简单的展开状态管理
   const getDefaultOpenState = () => {

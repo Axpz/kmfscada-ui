@@ -24,6 +24,7 @@ import {
   Minimize2,
   Settings,
 } from "lucide-react";
+import { useProductionLines } from "@/hooks/useProductionLines";
 
 // 类型定义
 interface ProductionLine {
@@ -425,13 +426,9 @@ const VideoDisplay = ({
 };
 
 // 主摄像头组件
-const CameraStream = ({
-  productionLines,
-  isLoadingLines,
-}: {
-  productionLines: ProductionLine[];
-  isLoadingLines: boolean;
-}) => {
+const CameraStream = () => {
+  const { data: dataProductionLines, isLoading: isLoadingLines } = useProductionLines()
+  const productionLines = dataProductionLines?.items || []
   // 状态管理
   const [selectedLineId, setSelectedLineId] = useState<string>("");
   const [selectedCamera, setSelectedCamera] = useState<string>("");
@@ -457,7 +454,7 @@ const CameraStream = ({
   // 设置默认值
   useEffect(() => {
     if (!selectedLineId && productionLines.length > 0) {
-      setSelectedLineId(productionLines[0]?.production_line_id || "1");
+      setSelectedLineId(productionLines[0]?.name || "1");
     }
   }, [productionLines, selectedLineId]);
 
@@ -607,9 +604,6 @@ interface VisualizationCameraProps {
 export default function VisualizationCamera({
   showTitle = false,
 }: VisualizationCameraProps) {
-  const { data: productionLines, isLoading: isLoadingLines } =
-    useProductionData();
-
   return (
     <div className="space-y-6">
       {showTitle && (
@@ -618,14 +612,11 @@ export default function VisualizationCamera({
             <Camera className="h-8 w-8" />
             摄像头监控
           </h1>
-          <p className="text-muted-foreground">实时摄像头数据流监控和分析。</p>
+          <p className="text-muted-foreground">实时摄像头数据流监控</p>
         </div>
       )}
 
-      <CameraStream
-        productionLines={productionLines || []}
-        isLoadingLines={isLoadingLines}
-      />
+      <CameraStream/>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Users, Factory, Settings, Shield } from 'lucide-react'
-import { useAuth } from '@/contexts'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Role } from '@/types'
 
 interface ManagementSidebarProps {
@@ -26,27 +26,27 @@ const managementNavItems = [
     label: '用户管理',
     icon: Users,
     description: '管理系统用户和权限',
-    requiredRole: ['superadmin'] as Role[]
+    requiredRole: ['admin', 'super_admin'] as Role[]
   },
   {
     href: '/management/lines',
     label: '生产线管理',
     icon: Factory,
     description: '配置和管理生产线',
-    requiredRole: ['superadmin'] as Role[]
+    requiredRole: ['user', 'admin', 'super_admin'] as Role[]
   },
   {
     href: '/management/security',
     label: '安全审计',
     icon: Shield,
     description: '查看系统安全日志',
-    requiredRole: ['superadmin'] as Role[]
+    requiredRole: ['user', 'admin', 'super_admin'] as Role[]
   }
 ]
 
 export default function ManagementSidebar({ className }: ManagementSidebarProps) {
   const pathname = usePathname()
-  const { hasRole } = useAuth()
+  const { hasRole } = useSupabaseAuth()
 
   // 过滤用户有权限访问的导航项
   const filteredNavItems = managementNavItems.filter(item => {

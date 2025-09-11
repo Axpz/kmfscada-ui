@@ -45,10 +45,23 @@ class ApiClient {
       }
     }
 
+    // 获取 Supabase 认证 token
+    let authHeaders: Record<string, string> = {}
+    try {
+      const { supabase } = await import('./supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        authHeaders['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch (error) {
+      console.error('Failed to get Supabase session:', error)
+    }
+
     // 默认配置
     const defaultConfig: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...config.headers,
       },
     }

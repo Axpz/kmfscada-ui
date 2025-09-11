@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
 import UserMenu from './UserMenu';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { Role } from '@/types';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AlarmNotification } from '@/components/ui/alarm-notification';
@@ -18,9 +18,9 @@ const mainNavLinks = [
   { href: '/dashboard', label: '数据看板' },
   // { href: '/workshop', label: '车间大屏' },
   { href: '/visualization', label: '可视化中心' },
-  { href: '/alarms/history', label: '告警中心', requiredRole: ['admin', 'superadmin'] as Role[] },
-  { href: '/export', label: '数据导出', requiredRole: ['superadmin'] as Role[] },
-  { href: '/management/users', label: '系统管理', requiredRole: ['superadmin'] as Role[] }, 
+  { href: '/alarms/history', label: '告警中心'},
+  { href: '/export', label: '数据导出', requiredRole: ['super_admin'] as Role[] },
+  { href: '/management/lines', label: '系统管理'}, 
 ];
 
 interface HeaderProps {
@@ -29,7 +29,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps) {
-  const { hasRole } = useAuth();
+  const { hasRole } = useSupabaseAuth();
   const pathname = usePathname();
 
   // 根据用户权限过滤主导航项
@@ -47,7 +47,7 @@ export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps
   // 检查当前路径是否匹配导航项
   const isLinkActive = (href: string) => {
     console.log("href", href)
-    if (href === '/management/users') {
+    if (href === '/management/lines') {
       return pathname.startsWith('/management');
     }
     if (href === '/visualization') {

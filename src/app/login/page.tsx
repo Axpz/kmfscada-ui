@@ -33,5 +33,15 @@ export default function LoginPage() {
     )
   }
 
-  return <LoginForm />
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-foreground mb-2">KFM·Scada 系统</h1>
+          <p className="text-muted-foreground">请输入您的登录信息</p>
+        </div>
+        <LoginForm />
+      </div>
+    </div>
+  )
 }

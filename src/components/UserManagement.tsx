@@ -64,6 +64,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 
 // --- Sub-components ---
 
@@ -74,13 +75,54 @@ const UserForm = ({
   onOpenChange: (open: boolean) => void
   user?: User
 }) => {
-  const [username, setUsername] = useState(user?.username || '')
+  const [username, setUsername] = useState(user?.user_metadata.username || '')
   const [email, setEmail] = useState(user?.email || '')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<Role>(user?.role || 'user')
+  const [role, setRole] = useState<Role>(user?.user_metadata.role || 'user')
 
   const { mutate: createUser, isPending: isCreating } = useCreateUser()
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser()
+  const { hasRole } = useSupabaseAuth()
+
+  // 验证函数
+  const validateUsername = (value: string) => {
+    if (value.length < 3) {
+      return '用户名长度至少3位'
+    }
+    if (!/^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(value)) {
+      return '用户名不能包含特殊字符'
+    }
+    return null
+  }
+
+  const validatePassword = (value: string) => {
+    if (value.length < 6) {
+      return '密码长度至少6位'
+    }
+    if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
+      return '密码需包含至少一个字母和一个数字'
+    }
+    return null
+  }
+
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(value)) {
+      return '请输入有效的邮箱地址'
+    }
+    return null
+  }
+
+  // 获取验证错误
+  const usernameError = username ? validateUsername(username) : null
+  const passwordError = password ? validatePassword(password) : null
+  const emailError = email ? validateEmail(email) : null
+
+  // 检查表单是否有效
+  const isFormValid = 
+    username.trim() && !usernameError &&
+    email.trim() && !emailError &&
+    (user || (password && !passwordError))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -116,11 +158,6 @@ const UserForm = ({
           onSuccess: () => {
             toast.success('用户已成功创建！')
             onOpenChange(false)
-            // 重置表单
-            setUsername('')
-            setEmail('')
-            setPassword('')
-            setRole('user')
           },
           onError: (error) => toast.error(`创建失败: ${error.message}`),
         }
@@ -145,11 +182,17 @@ const UserForm = ({
               onChange={(e) => setUsername(e.target.value)}
               placeholder="请输入用户名"
               required
-              className="h-10"
+              className={`h-10 ${usernameError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
-            <p className="text-xs text-muted-foreground">
-              用户名用于登录系统，建议使用英文字母和数字
-            </p>
+            {usernameError ? (
+              <p className="text-xs text-destructive">
+                {usernameError}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                长度至少3位，不包含特殊字符
+              </p>
+            )}
           </div>
 
           {/* 邮箱字段 */}
@@ -164,11 +207,13 @@ const UserForm = ({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="请输入邮箱地址"
               required
-              className="h-10"
+              className={`h-10 ${emailError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
-            <p className="text-xs text-muted-foreground">
-              用于接收系统通知和密码重置
-            </p>
+            {emailError && (
+              <p className="text-xs text-destructive">
+                {emailError}
+              </p>
+            )}
           </div>
 
           {/* 密码字段 - 仅创建时显示 */}
@@ -184,11 +229,17 @@ const UserForm = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-10"
+                className={`h-10 ${passwordError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               />
-              <p className="text-xs text-muted-foreground">
-                密码长度至少6位，建议包含字母和数字
-              </p>
+              {passwordError ? (
+                <p className="text-xs text-destructive">
+                  {passwordError}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  密码长度至少6位，需包含至少一个字母和一个数字
+                </p>
+              )}
             </div>
           )}
 
@@ -214,21 +265,20 @@ const UserForm = ({
                     <span className="text-xs text-muted-foreground">系统管理和配置权限</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="superadmin">
+                {hasRole('super_admin') && (
+                <SelectItem value="super_admin">
                   <div className="flex flex-col items-start">
                     <span className="font-medium">超级管理员</span>
                     <span className="text-xs text-muted-foreground">完整系统控制权限</span>
                   </div>
                 </SelectItem>
+                )}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              不同角色拥有不同的系统访问权限
-            </p>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 pt-6 border-t">
+        <DialogFooter className="gap-2 pt-6">
           <DialogClose asChild>
             <Button type="button" variant="outline" className="h-10">
               取消
@@ -236,7 +286,7 @@ const UserForm = ({
           </DialogClose>
           <Button
             type="submit"
-            disabled={isPending || !username.trim() || !email.trim() || (!user && !password)}
+            disabled={isPending || !isFormValid}
             className="h-10"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -254,6 +304,7 @@ export default function UserManagement() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
+  const { user: currentUser } = useSupabaseAuth()
 
   const { data: users, isLoading, error } = useUsers()
   const { mutate: deleteUser } = useDeleteUser()
@@ -315,7 +366,7 @@ export default function UserManagement() {
           <TableHeader>
             <TableRow>
               <TableHead>用户名</TableHead>
-              <TableHead className="hidden md:table-cell">邮箱</TableHead>
+              <TableHead>邮箱</TableHead>
               <TableHead>角色</TableHead>
               <TableHead className="hidden lg:table-cell">创建时间</TableHead>
               <TableHead className="text-right">操作</TableHead>
@@ -324,10 +375,10 @@ export default function UserManagement() {
           <TableBody>
             {users?.map((user: User) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.username}</TableCell>
-                <TableCell className="hidden md:table-cell">{user.email}</TableCell>
+                <TableCell>{user.user_metadata.username}</TableCell>
+                <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <StatusBadge status={user.role.toString()} />
+                  <StatusBadge status={user.user_metadata.role || 'user'} />
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {dayjs(user.created_at).format('YYYY-MM-DD HH:mm:ss')}
@@ -348,7 +399,7 @@ export default function UserManagement() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>编辑用户: {selectedUser?.username}</DialogTitle>
+                          <DialogTitle>编辑用户: {selectedUser?.user_metadata.username}</DialogTitle>
                         </DialogHeader>
                         {selectedUser && <UserForm onOpenChange={setEditDialogOpen} user={selectedUser} />}
                       </DialogContent>
@@ -356,7 +407,12 @@ export default function UserManagement() {
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-destructive 
+                          hover:text-destructive" 
+                          disabled={user.id === currentUser?.id}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -364,7 +420,7 @@ export default function UserManagement() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
                           <AlertDialogDescription>
-                            此操作无法撤销。这将永久删除用户 <strong>{user.username}</strong> 的账户。
+                            此操作无法撤销。这将永久删除用户 <strong>{user.user_metadata.username}</strong> 的账户。
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

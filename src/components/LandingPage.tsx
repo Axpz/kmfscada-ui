@@ -7,8 +7,18 @@ import {
   BarChart3, 
   Bell, 
   Eye, 
-  Settings
+  Settings,
+  TrendingUp,
+  Shield,
+  Zap,
+  ArrowRight,
+  Play,
+  Users,
+  Clock,
+  CheckCircle,
+  LogIn
 } from 'lucide-react'
+import NextLink from 'next/link'
 
 interface FeatureCardProps {
   icon: React.ReactNode
@@ -36,121 +46,54 @@ interface LandingPageProps {
 
 export default function LandingPage({ onNavigate }: LandingPageProps) {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
-      <section className="py-20 px-6 text-center bg-gradient-to-br from-background to-muted/20">
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-4 text-primary">
-          智能数据洞察，驱动未来生产力
-        </h1>
-        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-muted-foreground">
-          通过实时可视化和智能分析，赋能您的业务决策，提升运营效率。
-        </p>
+    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Hero Section - Full Screen */}
+      <section className="relative overflow-hidden h-screen flex items-center justify-center">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl animate-pulse delay-500" />
         
-       {/* Quick Access Section */}
-      <section className="py-10 px-6 bg-muted/30">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-primary">
-            快速访问
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card 
-              className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              onClick={() => onNavigate('dashboard')}
-            >
-              <CardContent className="p-6 text-center">
-                <BarChart3 className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold text-lg mb-2">数据看板</h3>
-                <p className="text-sm text-muted-foreground">查看实时生产数据</p>
-              </CardContent>
-            </Card>
-            
-            <Card 
-              className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              onClick={() => onNavigate('alarms')}
-            >
-              <CardContent className="p-6 text-center">
-                <Bell className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold text-lg mb-2">告警中心</h3>
-                <p className="text-sm text-muted-foreground">监控系统告警信息</p>
-              </CardContent>
-            </Card>
-            
-            <Card 
-              className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              onClick={() => onNavigate('visualization')}
-            >
-              <CardContent className="p-6 text-center">
-                <Eye className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold text-lg mb-2">可视化中心</h3>
-                <p className="text-sm text-muted-foreground">数据图表与分析</p>
-              </CardContent>
-            </Card>
-            
-            <Card 
-              className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              onClick={() => onNavigate('login')}
-            >
-              <CardContent className="p-6 text-center">
-                <Settings className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold text-lg mb-2">系统登录</h3>
-                <p className="text-sm text-muted-foreground">登录访问完整功能</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 px-6">
-        <h2 className="text-4xl font-bold text-center mb-12 text-primary">
-          核心功能
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-          <FeatureCard
-            icon="📊"
-            title="实时数据可视化"
-            description="将复杂数据转化为直观图表，一目了然掌握业务动态。"
-          />
-          
-          <FeatureCard
-            icon="💡"
-            title="智能预警与分析"
-            description="自动识别异常，提供深度洞察，辅助您做出明智决策。"
-          />
-          
-          <FeatureCard
-            icon="⚙️"
-            title="多维度生产线监控"
-            description="全面追踪各生产线状态，优化资源配置，提升生产效率。"
-          />
-          
-          <FeatureCard
-            icon="🔒"
-            title="安全可靠的数据管理"
-            description="企业级数据加密与权限控制，确保您的数据资产安全无虞。"
-          />
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
-              <div className="text-muted-foreground">系统可用性</div>
+        <div className="relative z-10 px-6 text-center w-full">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent animate-fadeInUp leading-tight">
+              智能数据洞察，驱动未来生产力
+            </h1>
+            <p className="text-xl md:text-2xl lg:text-3xl mb-16 max-w-4xl mx-auto text-muted-foreground animate-fadeInUp delay-200 leading-relaxed">
+              通过实时可视化和智能分析，赋能您的业务决策，提升生产效率。
+            </p>
+            <div></div>
+            {/* Feature Highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-fadeInUp delay-400">
+              <div>
+                <BarChart3 className="h-16 w-16 text-primary mx-auto mb-6" />
+                <h3 className="font-semibold text-xl mb-3">实时数据可视化</h3>
+                <p className="text-muted-foreground text-base">将复杂数据转化为直观图表</p>
+              </div>
+              <div>
+                <TrendingUp className="h-16 w-16 text-primary mx-auto mb-6" />
+                <h3 className="font-semibold text-xl mb-3">智能分析洞察</h3>
+                <p className="text-muted-foreground text-base">深度分析助力业务决策</p>
+              </div>
+              <div>
+                <Shield className="h-16 w-16 text-primary mx-auto mb-6" />
+                <h3 className="font-semibold text-xl mb-3">安全可靠</h3>
+                <p className="text-muted-foreground text-base">企业级安全保障</p>
+              </div>
             </div>
-            
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-muted-foreground">实时监控</div>
-            </div>
-            
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">1000+</div>
-              <div className="text-muted-foreground">数据点监控</div>
+
+            {/* Call to Action */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-end pr-32 animate-fadeInUp delay-600">
+              <NextLink 
+                href="/login" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <div className="flex items-center">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  系统登录
+                </div>
+              </NextLink>
             </div>
           </div>
         </div>

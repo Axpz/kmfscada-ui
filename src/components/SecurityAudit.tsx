@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,58 +32,12 @@ import {
   Clock,
   User,
   Activity,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react'
-import { addDays } from 'date-fns'
-
-// Mock 安全日志数据
-const mockSecurityLogs = [
-  {
-    id: '1',
-    timestamp: '2025-01-27 14:30:25',
-    user: 'admin',
-    action: '用户登录',
-    ip: '192.168.1.100',
-    status: 'success',
-    details: '成功登录系统'
-  },
-  {
-    id: '2',
-    timestamp: '2025-01-27 14:25:12',
-    user: 'operator1',
-    action: '密码修改',
-    ip: '192.168.1.105',
-    status: 'success',
-    details: '用户修改密码'
-  },
-  {
-    id: '3',
-    timestamp: '2025-01-27 14:20:08',
-    user: 'unknown',
-    action: '登录失败',
-    ip: '192.168.1.200',
-    status: 'failed',
-    details: '密码错误，连续失败3次'
-  },
-  {
-    id: '4',
-    timestamp: '2025-01-27 14:15:33',
-    user: 'manager',
-    action: '权限变更',
-    ip: '192.168.1.102',
-    status: 'success',
-    details: '修改用户 operator2 权限'
-  },
-  {
-    id: '5',
-    timestamp: '2025-01-27 14:10:45',
-    user: 'admin',
-    action: '系统配置',
-    ip: '192.168.1.100',
-    status: 'success',
-    details: '修改系统安全设置'
-  }
-]
+import { addDays, format } from 'date-fns'
+import { useAuditLogs } from '@/hooks/useAuditLogs'
+import type { AuditLogFilter } from '@/types'
 
 export default function SecurityAudit() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -91,46 +45,49 @@ export default function SecurityAudit() {
     to: new Date(),
   })
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [actionFilter, setActionFilter] = useState<string>('')
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'success':
-        return (
-          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            成功
-          </Badge>
-        )
-      case 'failed':
-        return (
-          <Badge variant="destructive">
-            <XCircle className="w-3 h-3 mr-1" />
-            失败
-          </Badge>
-        )
-      case 'warning':
-        return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            警告
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  // 构建过滤条件
+  const buildFilters = (): AuditLogFilter => {
+    const filters: AuditLogFilter = {
+      page: 1,
+      size: 100
     }
+
+    if (searchTerm) {
+      // 如果搜索词包含@，认为是邮箱搜索
+      if (searchTerm.includes('@')) {
+        filters.email = searchTerm
+      } else {
+        // 否则搜索操作类型
+        filters.action = searchTerm
+      }
+    }
+
+    if (actionFilter) {
+      filters.action = actionFilter
+    }
+
+    if (dateRange?.from) {
+      filters.start_time = dateRange.from.toISOString()
+    }
+
+    if (dateRange?.to) {
+      filters.end_time = dateRange.to.toISOString()
+    }
+
+    return filters
   }
 
-  const filteredLogs = mockSecurityLogs.filter(log => {
-    const matchesSearch = searchTerm === '' ||
-      log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.ip.includes(searchTerm)
-
-    const matchesStatus = statusFilter === 'all' || log.status === statusFilter
-
-    return matchesSearch && matchesStatus
-  })
+  // 构建过滤条件
+  const filters = buildFilters()
+  
+  // 使用 React Query hook 获取数据
+  const { data, isLoading, error, refetch } = useAuditLogs(filters)
+  
+  const logs = data?.items || []
+  const total = data?.total || 0
+  const loading = isLoading
 
   return (
     <div className="space-y-6">
@@ -157,34 +114,68 @@ export default function SecurityAudit() {
               <TableHead>用户</TableHead>
               <TableHead>操作</TableHead>
               <TableHead>IP地址</TableHead>
-              {/* <TableHead>状态</TableHead> */}
               <TableHead>详情</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLogs.map((log) => (
-              <TableRow key={log.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    {log.timestamp}
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>加载中...</span>
                   </div>
                 </TableCell>
-                <TableCell>{log.user}</TableCell>
-                <TableCell>{log.action}</TableCell>
-                <TableCell>{log.ip}</TableCell>
-                {/* <TableCell>{getStatusBadge(log.status)}</TableCell> */}
-                <TableCell>{log.details}</TableCell>
               </TableRow>
-            ))}
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-red-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>加载失败: {error instanceof Error ? error.message : '未知错误'}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : logs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>没有找到匹配的安全日志</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss')}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {log.email || '未知用户'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {log.action}
+                    </div>
+                  </TableCell>
+                  <TableCell>{log.ip_address || '-'}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={log.detail || ''}>
+                    {log.detail || '-'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {filteredLogs.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>没有找到匹配的安全日志</p>
+      {/* 显示总数信息 */}
+      {!loading && !error && logs.length > 0 && (
+        <div className="text-sm text-muted-foreground text-center">
+          共 {total} 条记录，显示 {logs.length} 条
         </div>
       )}
     </div>

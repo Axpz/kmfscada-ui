@@ -10,16 +10,18 @@
  * - `admin`: 管理员，可查看数据并下载，但不能管理用户。
  * - `user`: 普通用户，仅能查看数据。
  */
-export type Role = 'superadmin' | 'admin' | 'user';
+export type Role = 'super_admin' | 'admin' | 'user';
 
 /**
  * 用户账户信息
  */
 export interface User {
   id: string;
-  username: string; // 登录用户名
   email?: string; // 可选的联系邮箱
-  role: Role; // 用户角色
+  user_metadata: {
+    username: string; // 用户名
+    role: Role; // 用户角色
+  };
   created_at: string;
   last_sign_in_at?: string;
 }
@@ -152,6 +154,44 @@ export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
  *                              安全审计 (Security Audit)
  * =================================================================================
  */
+
+/**
+ * 审计日志
+ */
+export interface AuditLog {
+  id: number;
+  email?: string;
+  action: string;
+  ip_address?: string;
+  user_agent?: string;
+  detail?: string;
+  created_at: string;
+}
+
+export interface AuditLogFilter {
+  email?: string;
+  action?: string;
+  ip_address?: string;
+  start_time?: string;
+  end_time?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface AuditLogCreate {
+  email?: string;
+  action: string;
+  ip_address?: string;
+  user_agent?: string;
+  detail?: string;
+}
+
+export interface AuditLogListResponse {
+  items: AuditLog[];
+  total: number;
+  page: number;
+  size: number;
+}
 
 /**
  * 登录记录

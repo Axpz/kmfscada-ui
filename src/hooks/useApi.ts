@@ -1,17 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import type { ProductionDataPoint, User, Role, AlarmRecord, DiameterAlarmConfig } from '../types'
-import {
-  generateMockProductionData,
-  generateMockUsers,
-  generateMockAlarmHistory,
-  generateMockAlarmRules,
-  generateMockHistoricalData,
-  MockDataSimulator
-} from '../lib/mockData'
+import type { User, Role } from '../types'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development' || !process.env.NEXT_PUBLIC_API_URL
 
 const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
@@ -25,60 +16,12 @@ apiClient.interceptors.request.use(async (config) => {
   return config
 })
 
-// Mock API 延迟模拟
-const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms))
-
-// --- Production Data Hooks ---
-
-export function useProductionData(refetchInterval: number = 0) {
-  return useQuery<ProductionDataPoint[]>({
-    queryKey: ['production-data'],
-    queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(300)
-        return generateMockProductionData()
-      }
-      const { data } = await apiClient.get('/production/latest')
-      return data
-    },
-    refetchInterval,
-  })
-}
-
-export function useHistoricalData(
-  productionLineId: string,
-  startTime: string,
-  endTime: string,
-  enabled: boolean = true
-) {
-  return useQuery<ProductionDataPoint[]>({
-    queryKey: ['historical-data', productionLineId, startTime, endTime],
-    queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(800)
-        return generateMockHistoricalData(productionLineId, startTime, endTime)
-      }
-      const params = new URLSearchParams({
-        start_time: startTime,
-        end_time: endTime,
-      })
-      const { data } = await apiClient.get(`/production/history/${productionLineId}`, { params })
-      return data
-    },
-    enabled: !!productionLineId && !!startTime && !!endTime && enabled,
-  })
-}
-
 // --- User Management Hooks ---
 
 export function useUsers() {
   return useQuery<User[]>({
     queryKey: ['users'],
     queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(400)
-        return generateMockUsers()
-      }
       const { data } = await apiClient.get('/users')
       return data.users
     },
@@ -89,19 +32,6 @@ export function useCreateUser() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (userData: { email: string; password: string; role?: string; username?: string }) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(600)
-        // 模拟创建成功
-        return {
-          success: true,
-          user: {
-            id: Date.now().toString(),
-            ...userData,
-            username: userData.username || userData.email.split('@')[0],
-            created_at: new Date().toISOString()
-          }
-        }
-      }
       const { data } = await apiClient.post('/users', userData)
       return data
     },
@@ -112,11 +42,7 @@ export function useCreateUser() {
 export function useUpdateUser() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { username?: string, email?: string, role?: Role } }) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(400)
-        return { success: true, message: '用户更新成功' }
-      }
+    mutationFn: async ({ id, data }: { id: string; data: { username?: string, email?: string, role?: Role, old_password?: string, new_password?: string } }) => {
       const { data: responseData } = await apiClient.put(`/users/${id}`, data)
       return responseData
     },
@@ -128,10 +54,6 @@ export function useDeleteUser() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(400)
-        return { success: true, message: '用户删除成功' }
-      }
       const { data } = await apiClient.delete(`/users/${id}`)
       return data
     },
@@ -139,102 +61,11 @@ export function useDeleteUser() {
   })
 }
 
-export function useExportHistory() {
-  return useQuery({
-    queryKey: ['export-history'],
-    queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(500)
-        return Array.from({ length: 10 }, (_, i) => {
-          const startDate = new Date(Date.now() - (i + 7) * 86400000)
-          const endDate = new Date(Date.now() - i * 86400000)
-          const status = ['completed', 'processing', 'failed'][Math.floor(Math.random() * 3)] as 'completed' | 'processing' | 'failed'
-
-          return {
-            id: `export-${i + 1}`,
-            filename: `production_data_${endDate.toISOString().split('T')[0]}.xlsx`,
-            status,
-            created_at: new Date(Date.now() - i * 86400000).toISOString(),
-            createdAt: new Date(Date.now() - i * 86400000).toISOString(), // 兼容性字段
-            download_url: status === 'completed' ? `/downloads/export-${i + 1}.xlsx` : undefined,
-            downloadUrl: status === 'completed' ? `/downloads/export-${i + 1}.xlsx` : undefined, // 兼容性字段
-            error_message: status === 'failed' ? '数据处理失败' : undefined,
-            config: {
-              start_time: startDate.toISOString().split('T')[0],
-              end_time: endDate.toISOString().split('T')[0],
-              format: Math.random() > 0.5 ? 'xlsx' : 'csv' as 'xlsx' | 'csv',
-              fields: [
-                'real_time_diameter',
-                'body_temperatures',
-                'screw_motor_speed',
-                'total_length_produced'
-              ] as any[]
-            }
-          }
-        })
-      }
-      const { data } = await apiClient.get('/exports/history')
+export function useAuthSignin() {
+  return useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const { data } = await apiClient.post('/auth/signin', { email, password })
       return data
     },
-  })
-}
-
-export function useCreateExportTask() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (exportConfig: any) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(800)
-        return {
-          success: true,
-          task: {
-            id: Date.now().toString(),
-            ...exportConfig,
-            status: 'processing',
-            created_at: new Date().toISOString()
-          }
-        }
-      }
-      const { data } = await apiClient.post('/exports', exportConfig)
-      return data
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['export-history'] }),
-  })
-}
-
-export function useCreateProductionData() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (productionData: Partial<ProductionDataPoint>) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(600)
-        return {
-          success: true,
-          data: {
-            id: Date.now().toString(),
-            ...productionData,
-            timestamp: new Date().toISOString()
-          }
-        }
-      }
-      const { data } = await apiClient.post('/production', productionData)
-      return data
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['production-data'] }),
-  })
-}
-
-export function useUpdateProductionData() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ProductionDataPoint> }) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay(500)
-        return { success: true, message: '生产数据更新成功' }
-      }
-      const { data: responseData } = await apiClient.put(`/production/${id}`, data)
-      return responseData
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['production-data'] }),
   })
 }
