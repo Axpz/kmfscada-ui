@@ -106,7 +106,7 @@ export const ConfigurableGauge: React.FC<ConfigurableGaugeProps> = ({
 
   return (
     <div className={cn(
-      'flex flex-col w-64 h-56',
+      'flex flex-col lg:w-64 lg:h-56',
       className
     )}>
       <div className="flex items-center justify-center px-4 pt-3 pb-2">

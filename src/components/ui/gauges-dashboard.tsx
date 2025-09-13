@@ -127,10 +127,8 @@ export const GaugesDashboard: React.FC<GaugesDashboardProps> = ({
   className
 }) => {
   return (
-    <div className={cn(
-      'grid grid-cols-1 gap-6 p-4',
-      'sm:grid-cols-2 sm:gap-8',
-      'lg:grid-cols-5 lg:gap-8',
+    <div className={cn('grid grid-cols-3 gap-6 p-4 justify-center',
+      'md:grid-cols-5',
       className
     )}>
       {motorTorque && <ConfigurableGauge

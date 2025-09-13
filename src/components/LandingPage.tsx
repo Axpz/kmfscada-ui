@@ -48,7 +48,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section - Full Screen */}
-      <section className="relative overflow-hidden h-screen flex items-center justify-center">
+      <section className="relative overflow-hidden min-h-screen flex items-center justify-center py-8">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -60,12 +60,12 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent animate-fadeInUp leading-tight">
               智能数据洞察，驱动未来生产力
             </h1>
-            <p className="text-xl md:text-2xl lg:text-3xl mb-16 max-w-4xl mx-auto text-muted-foreground animate-fadeInUp delay-200 leading-relaxed">
+            <p className="hidden md:block text-xl md:text-2xl lg:text-3xl mb-16 max-w-4xl mx-auto text-muted-foreground animate-fadeInUp delay-200 leading-relaxed">
               通过实时可视化和智能分析，赋能您的业务决策，提升生产效率。
             </p>
             <div></div>
             {/* Feature Highlights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-fadeInUp delay-400">
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-fadeInUp delay-400">
               <div>
                 <BarChart3 className="h-16 w-16 text-primary mx-auto mb-6" />
                 <h3 className="font-semibold text-xl mb-3">实时数据可视化</h3>
@@ -84,7 +84,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             </div>
 
             {/* Call to Action */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-end pr-32 animate-fadeInUp delay-600">
+            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start justify-center sm:justify-start md:justify-end md:pr-32 animate-fadeInUp delay-600">
               <NextLink 
                 href="/login" 
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"

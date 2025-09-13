@@ -1005,7 +1005,7 @@ const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTime
       </Card>}
 
       {/* 温度监控面板 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-4">
         <TemperaturePanel realTimeData={realTimeData} chartData={chartData} />
         {/* <CurrentPanel realTimeData={realTimeData} chartData={chartData} /> */}
         <QualityPanel realTimeData={realTimeData} chartData={chartData} />
@@ -1066,11 +1066,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex gap-4 h-full">
+    <div className="flex flex-col md:flex-row gap-4 h-full">
       {/* Main content area - 3/4 width */}
-      <div className="w-3/4 space-y-4">
+      <div className="w-full md:w-3/4 space-y-4">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold">实时数据</h1>
               <Select value={selectedLineId} onValueChange={setSelectedLineId}>
@@ -1087,7 +1087,7 @@ export default function Dashboard() {
               </Select>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex flex-row items-start sm:items-center gap-4">
             <div className="flex items-center gap-4 px-4 h-10 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-1">
                 <span className="text-sm font-medium">氟离子浓度</span>
@@ -1102,7 +1102,7 @@ export default function Dashboard() {
 
         {/* 生产信息 KPI */}
         {/* {productionData && ( */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-1 md:gap-4 grid-cols-4">
             {/* 前3列：使用flex让所有项目等宽分布 */}
             <Card className="flex-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -1132,8 +1132,8 @@ export default function Dashboard() {
               <CardContent>
               { productionData?.current_length.value && 
                 <div className="text-md font-bold text-blue-600">
-                  <span className="text-green-600">{productionData?.current_length.value} </span>/
-                  <span className="text-blue-600"> {productionData?.target_length.value } </span>
+                  <span className="text-green-600">{productionData?.current_length.value.toFixed(0)} </span>/
+                  <span className="text-blue-600"> {productionData?.target_length.value.toFixed(0) } </span>
                 </div>
               }
               </CardContent>
@@ -1157,7 +1157,7 @@ export default function Dashboard() {
         {productionData ? (
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
             {/* 生产线数据 - 占3列 */}
-            <div className="xl:col-span-4 space-y-4">
+            <div className="lg:col-span-4 space-y-4">
               <div>
                 <ProductionLineDetail realTimeData={productionData} chartData={chartDataArray}/>
               </div>
@@ -1172,7 +1172,7 @@ export default function Dashboard() {
       </div>
 
       {/* Right sidebar area - 1/4 width */}
-      <div className="w-1/4">
+      <div className="w-full md:w-1/4">
         {productionData &&
           <div className="space-y-4 h-fit">
             <CameraMonitor lineId={productionData.line_id} />
