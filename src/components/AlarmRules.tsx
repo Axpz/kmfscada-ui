@@ -67,7 +67,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { useActiveProductionLines } from '@/hooks/useProductionLines'
+import { useAvailableProductionLines } from '@/hooks/useProductionLines'
 
 const ALARM_RULE_PARAMETERS = [
   { value: 'current_length', label: '当前生产长度' },
@@ -123,7 +123,7 @@ const AlarmRuleForm = ({
   onClose: () => void
   isEdit?: boolean
 }) => {
-  const { data: activeLineIds } = useActiveProductionLines()
+  const { data: activeLineIds } = useAvailableProductionLines()
   const lineIds = ['*', ...activeLineIds?.items?.map(line => line.name) || []]
   const [formData, setFormData] = useState({
     line_id: rule?.line_id || '',
@@ -250,13 +250,10 @@ const AlarmRuleForm = ({
             />
               {formData.enabled ? '已启用' : '已禁用'}
           </div>
-          <p className="text-xs text-muted-foreground">
-            启用后该规则将生效并触发报警
-          </p>
         </div>
       </div>
 
-      <DialogFooter className="gap-2 pt-6 border-t">
+      <DialogFooter className="gap-2 pt-6">
         <DialogClose asChild>
           <Button type="button" variant="outline" className="h-10">
             取消

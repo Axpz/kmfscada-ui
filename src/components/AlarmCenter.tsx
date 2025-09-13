@@ -23,9 +23,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import { DateRange } from 'react-day-picker'
+import { DateRangePicker, DateRange } from '@/components/ui/date-range-picker'
 import { toast } from 'sonner'
+import { DataPagination } from '@/components/ui/data-pagination'
+import { usePagination } from '@/hooks/usePagination'
 
 import dayjs from 'dayjs'
 import {
@@ -35,18 +36,28 @@ import {
   X,
   Search,
   CheckCircle,
-  PlusCircle,
 } from 'lucide-react'
 import { useAvailableProductionLines } from '@/hooks/useProductionLines'
+import { addDays } from 'date-fns'
 
 export default function AlarmCenter() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'acknowledged' | 'unacknowledged'>('all')
   const [productionLineFilter, setProductionLineFilter] = useState<string>('')
   const [messageFilter, setMessageFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 100
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  })
+  
+  // 使用分页 hook
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    getPaginationInfo
+  } = usePagination()
 
   const { data: activeLineIds } = useAvailableProductionLines()
   const lineIds = ['*', ...activeLineIds?.items?.map(line => line.name) || []]
@@ -100,6 +111,7 @@ export default function AlarmCenter() {
   // 获取报警记录和总数
   const alarms = alarmData?.items || []
   const totalAlarms = alarmData?.total || 0
+  const paginationInfo = getPaginationInfo(totalAlarms)
 
   // 清除所有过滤器
   const clearAllFilters = () => {
@@ -237,7 +249,7 @@ export default function AlarmCenter() {
                   <div className="flex-1 min-w-0">
                     <DateRangePicker 
                       value={dateRange} 
-                      onChange={(range) => {
+                      onChange={(range: DateRange | undefined) => {
                         setDateRange(range)
                         setCurrentPage(1)
                       }} 
@@ -296,6 +308,18 @@ export default function AlarmCenter() {
           </TableBody>
         </Table>
       </div>
+
+      {/* 分页组件 */}
+      {totalAlarms > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={paginationInfo.totalPages}
+          pageSize={pageSize}
+          totalItems={totalAlarms}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       {/* 空状态提示 */}
       {alarms.length === 0 && (

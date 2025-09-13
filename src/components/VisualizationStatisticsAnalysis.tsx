@@ -1,19 +1,16 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useProductionData } from '@/hooks/useApi'
-import { useQueries } from '@tanstack/react-query'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { Label } from '@/components/ui/label'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DateRangePicker, DateRange } from '@/components/ui/date-range-picker'
 import { ChartCard } from '@/components/ui/chart-card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { addDays, format } from 'date-fns'
-import { DateRange } from 'react-day-picker'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import {
   LineChart as RechartsLineChart,
@@ -259,10 +256,6 @@ const NormalDistributionAnalysis = ({
                   <div className="font-medium">{median(item.values).toFixed(2)}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-muted-foreground text-sm">变异系数</div>
-                  <div className="font-medium">{((item.stdDev / item.mean) * 100).toFixed(1)}%</div>
-                </div>
-                <div className="text-center">
                   <div className="text-muted-foreground text-sm">第25百分位</div>
                   <div className="font-medium">{quantile(item.values, 0.25).toFixed(2)}</div>
                 </div>
@@ -487,25 +480,13 @@ const HistoricalChart = ({
                 )}
               </div>
 
-              {/* 日期范围选择器 */}
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  时间
-                </Label>
-                <DateRangePicker
-                  value={dateRange}
-                  onChange={setDateRange}
-                  className="w-48"
-                />
-              </div>
-
               {/* 图表类型选择器 */}
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                   类型
                 </Label>
                 <Select value={chartCategory} onValueChange={(v) => setChartCategory(v as SensorDataType)}>
-                  <SelectTrigger className="w-32 h-8">
+                  <SelectTrigger className="w-32 h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -519,21 +500,34 @@ const HistoricalChart = ({
               </div>
             </div>
 
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                数据系列
+              </Label>
+              <MultiSelect
+                options={getSeriesOptions(chartCategory)}
+                value={visibleSeries}
+                onValueChange={setVisibleSeries}
+                placeholder="选择数据系列"
+                className="w-64"
+                maxDisplay={1}
+              />
+            </div>
+
+            {/* 日期范围选择器 */}
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                时间
+              </Label>
+              <DateRangePicker
+                value={dateRange}
+                onChange={setDateRange}
+              />
+            </div>
+
             {/* 右侧：数据系列多选和正态分布按钮 */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  数据系列
-                </Label>
-                <MultiSelect
-                  options={getSeriesOptions(chartCategory)}
-                  value={visibleSeries}
-                  onValueChange={setVisibleSeries}
-                  placeholder="选择数据系列"
-                  className="w-64"
-                  maxDisplay={1}
-                />
-
                 {/* 正态分布切换按钮 */}
                 <Button
                   variant={showNormalDistribution ? "default" : "outline"}

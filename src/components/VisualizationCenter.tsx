@@ -143,9 +143,9 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableHead>生产线</TableHead>
                     <TableHead>生产批号</TableHead>
                     <TableHead>原料批号</TableHead>
-                    <TableHead>当前生产长度</TableHead>
-                    <TableHead>目标生产长度</TableHead>
-                    <TableHead>实时测量直径</TableHead>
+                    <TableHead>当前米数</TableHead>
+                    <TableHead>长度设定</TableHead>
+                    <TableHead>当前直径</TableHead>
                     <TableHead>氟离子浓度</TableHead>
                     <TableHead>状态</TableHead>
                     <TableHead>最后更新</TableHead>
@@ -207,21 +207,22 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                 <TableHeader>
                   <TableRow>
                     <TableHead>生产线</TableHead>
-                    <TableHead>机身温度</TableHead>
-                    <TableHead>机身电流</TableHead>
+                    <TableHead>机筒温度</TableHead>
+                    <TableHead>机筒电流</TableHead>
                     <TableHead>法兰温度</TableHead>
                     <TableHead>法兰电流</TableHead>
                     <TableHead>模具温度</TableHead>
                     <TableHead>模具电流</TableHead>
-                    <TableHead>螺杆转速</TableHead>
-                    <TableHead>电机扭矩</TableHead>
-                    <TableHead>牵引速度</TableHead>    
-                    <TableHead>主轴电流</TableHead>
-                    <TableHead>收卷速度</TableHead>
-                    <TableHead>收卷扭矩</TableHead>
-                    <TableHead>收卷层数</TableHead>
-                    <TableHead>收卷管速度</TableHead>
-                    <TableHead>收卷管数量</TableHead>
+                    <TableHead>主机当前电流</TableHead>
+                    <TableHead>主机当前扭力</TableHead>
+                    <TableHead>主机当前速度</TableHead>
+                    <TableHead>牵引当前速度</TableHead>
+                    <TableHead>真空当前速度</TableHead>
+                    <TableHead>当前收卷速度</TableHead>
+                    <TableHead>当前收卷扭力</TableHead>
+                    <TableHead>当前排管层数</TableHead>
+                    <TableHead>当前排管速度</TableHead>
+                    <TableHead>当前排管根</TableHead>
                     <TableHead>最后更新</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -234,19 +235,19 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div>
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.temp_body_zone1} unit="°C" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.temp_body_zone2} unit="°C" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">C:</span>
+                            <span className="text-muted-foreground">3:</span>
                             <SensorValueView sensor={line?.temp_body_zone3} unit="°C" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">D:</span>
+                            <span className="text-muted-foreground">4:</span>
                             <SensorValueView sensor={line?.temp_body_zone4} unit="°C" />
                           </div>
                         </div>
@@ -254,19 +255,19 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div>
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.current_body_zone1} unit="A" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.current_body_zone2} unit="A" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">C:</span>
+                            <span className="text-muted-foreground">3:</span>
                             <SensorValueView sensor={line?.current_body_zone3} unit="A" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">D:</span>
+                            <span className="text-muted-foreground">4:</span>
                             <SensorValueView sensor={line?.current_body_zone4} unit="A" />
                           </div>
                         </div>
@@ -274,11 +275,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div className="space-y-1">
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.temp_flange_zone1} unit="°C" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.temp_flange_zone2} unit="°C" />
                           </div>
                         </div>
@@ -286,11 +287,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div className="space-y-1">
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.current_flange_zone1} unit="A" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.current_flange_zone2} unit="A" />
                           </div>
                         </div>
@@ -298,11 +299,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div className="space-y-1">
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.temp_mold_zone1} unit="°C" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.temp_mold_zone2} unit="°C" />
                           </div>
                         </div>
@@ -310,41 +311,44 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                       <TableCell>
                         <div className="space-y-1">
                           <div>
-                            <span className="text-muted-foreground">A:</span>
+                            <span className="text-muted-foreground">1:</span>
                             <SensorValueView sensor={line?.current_mold_zone1} unit="A" />
                           </div>
                           <div>
-                            <span className="text-muted-foreground">B:</span>
+                            <span className="text-muted-foreground">2:</span>
                             <SensorValueView sensor={line?.current_mold_zone2} unit="A" />
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <SensorValueView sensor={line?.motor_screw_speed} unit="rpm" />
-                      </TableCell>
-                      <TableCell>
-                        <SensorValueView sensor={line?.motor_screw_torque} unit="Nm" />
-                      </TableCell>
-                      <TableCell>
-                        <SensorValueView sensor={line?.motor_traction_speed} unit="m/min" />
-                      </TableCell>
-                      <TableCell>
                         <SensorValueView sensor={line?.motor_current} unit="A" />
                       </TableCell>
                       <TableCell>
-                        <SensorValueView sensor={line?.winder_speed} unit="rpm" />
+                        <SensorValueView sensor={line?.motor_screw_torque} unit="%" />
                       </TableCell>
                       <TableCell>
-                        <SensorValueView sensor={line?.winder_torque} unit="Nm" />
+                        <SensorValueView sensor={line?.motor_screw_speed} unit="HZ" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.motor_traction_speed} unit="RPM" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.motor_vacuum_speed} unit="HZ" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.winder_speed} unit="HZ" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.winder_torque} unit="%" />
                       </TableCell>
                       <TableCell>
                         <SensorValueView sensor={line?.winder_layer_count} unit="层" />
                       </TableCell>
                       <TableCell>
-                        <SensorValueView sensor={line?.winder_tube_speed} unit="rpm" />
+                        <SensorValueView sensor={line?.winder_tube_speed} unit="RPM" />
                       </TableCell>
                       <TableCell>
-                        <SensorValueView sensor={line?.winder_tube_count} unit="个" />
+                        <SensorValueView sensor={line?.winder_tube_count} unit="P" />
                       </TableCell>
                       <TableCell>
                         <span>

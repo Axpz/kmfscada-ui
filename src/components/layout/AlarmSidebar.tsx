@@ -19,14 +19,14 @@ const alarmNavItems = [
     label: '报警历史',
     icon: History,
     description: '查看和管理历史报警记录',
-    requiredRole: ['superadmin', 'admin', 'user'] as Role[]
+    requiredRole: ['super_admin', 'admin', 'user'] as Role[]
   },
   {
     href: '/alarms/rules',
     label: '报警规则',
     icon: AlertTriangle,
     description: '配置报警阈值和规则',
-    requiredRole: ['superadmin', 'admin', 'user'] as Role[]
+    requiredRole: ['super_admin', 'admin', 'user'] as Role[]
   }
 ]
 

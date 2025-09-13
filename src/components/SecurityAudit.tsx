@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
+import { DataPagination } from '@/components/ui/data-pagination'
+import { usePagination } from '@/hooks/usePagination'
 import {
   Shield,
   Search,
@@ -47,11 +48,20 @@ export default function SecurityAudit() {
   const [searchTerm, setSearchTerm] = useState('')
   const [actionFilter, setActionFilter] = useState<string>('')
 
+  // 使用分页 hook
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    getPaginationInfo
+  } = usePagination()
+
   // 构建过滤条件
   const buildFilters = (): AuditLogFilter => {
     const filters: AuditLogFilter = {
-      page: 1,
-      size: 100
+      page: currentPage,
+      size: pageSize
     }
 
     if (searchTerm) {
@@ -88,6 +98,7 @@ export default function SecurityAudit() {
   const logs = data?.items || []
   const total = data?.total || 0
   const loading = isLoading
+  const paginationInfo = getPaginationInfo(total)
 
   return (
     <div className="space-y-6">
@@ -172,11 +183,16 @@ export default function SecurityAudit() {
         </Table>
       </div>
 
-      {/* 显示总数信息 */}
-      {!loading && !error && logs.length > 0 && (
-        <div className="text-sm text-muted-foreground text-center">
-          共 {total} 条记录，显示 {logs.length} 条
-        </div>
+      {/* 分页组件 */}
+      {!loading && !error && total > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={paginationInfo.totalPages}
+          pageSize={pageSize}
+          totalItems={total}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
       )}
     </div>
   )

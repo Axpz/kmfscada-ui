@@ -268,48 +268,54 @@ const TemperaturePanel = React.memo(({ realTimeData, chartData }: { realTimeData
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-md">
           <Thermometer className="h-5 w-5 text-muted-foreground" />
-          温度 监控
+          温度 / 电流
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 pb-0">
         {/* 实时温度数值 */}
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_body_zone1} unit="°C" className='text-blue-500'/>
+            <div><SensorValueView sensor={realTimeData.temp_body_zone1} unit=" °C" className='text-blue-500'/></div>
+            <div><SensorValueView sensor={realTimeData.current_body_zone1} unit=" A" className='text-blue-500'/></div>
             <div className="text-xs text-muted-foreground">机身1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_body_zone2} unit="°C" className='text-blue-400'/>
+            <div><SensorValueView sensor={realTimeData.temp_body_zone2} unit=" °C" className='text-blue-400'/></div>
+            <div><SensorValueView sensor={realTimeData.current_body_zone2} unit=" A" className='text-blue-400'/></div>
             <div className="text-xs text-muted-foreground">机身2</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_body_zone3} unit="°C" className='text-blue-300'/>
+            <div><SensorValueView sensor={realTimeData.temp_body_zone3} unit=" °C" className='text-blue-300'/></div>
+            <div><SensorValueView sensor={realTimeData.current_body_zone3} unit=" A" className='text-blue-300'/></div>
             <div className="text-xs text-muted-foreground">机身3</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_body_zone4} unit="°C" className='text-blue-200'/>
+            <div><SensorValueView sensor={realTimeData.temp_body_zone4} unit=" °C" className='text-blue-200'/></div>
+            <div><SensorValueView sensor={realTimeData.current_body_zone4} unit=" A" className='text-blue-200'/></div>
             <div className="text-xs text-muted-foreground">机身4</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_flange_zone1} unit="°C" className='text-cyan-500'/>
+            <div><SensorValueView sensor={realTimeData.temp_flange_zone1} unit=" °C" className='text-cyan-500'/></div>
+            <div><SensorValueView sensor={realTimeData.current_flange_zone1} unit=" A" className='text-cyan-500'/></div>
             <div className="text-xs text-muted-foreground">法兰1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_flange_zone2} unit="°C" className='text-cyan-400'/>
+            <div><SensorValueView sensor={realTimeData.temp_flange_zone2} unit=" °C" className='text-cyan-400'/></div>
+            <div><SensorValueView sensor={realTimeData.current_flange_zone2} unit=" A" className='text-cyan-400'/></div>
             <div className="text-xs text-muted-foreground">法兰2</div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_mold_zone1} unit="°C" className='text-violet-600'/>
+            <div><SensorValueView sensor={realTimeData.temp_mold_zone1} unit=" °C" className='text-violet-600'/></div>
+            <div><SensorValueView sensor={realTimeData.current_mold_zone1} unit=" A" className='text-violet-600'/></div>
             <div className="text-xs text-muted-foreground">模具1</div>
           </div>
           <div className="text-center p-2 bg-muted/30 rounded">
-            <SensorValueView sensor={realTimeData.temp_mold_zone2} unit="°C" className='text-violet-500'/>
+            <div><SensorValueView sensor={realTimeData.temp_mold_zone2} unit=" °C" className='text-violet-500'/></div>
+            <div><SensorValueView sensor={realTimeData.current_mold_zone2} unit=" A" className='text-violet-500'/></div>
             <div className="text-xs text-muted-foreground">模具2</div>
           </div>
         </div>
@@ -999,9 +1005,9 @@ const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTime
       </Card>}
 
       {/* 温度监控面板 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <TemperaturePanel realTimeData={realTimeData} chartData={chartData} />
-        <CurrentPanel realTimeData={realTimeData} chartData={chartData} />
+        {/* <CurrentPanel realTimeData={realTimeData} chartData={chartData} /> */}
         <QualityPanel realTimeData={realTimeData} chartData={chartData} />
       </div>
     </div>
@@ -1124,8 +1130,12 @@ export default function Dashboard() {
                 <Ruler className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
+              { productionData?.current_length.value && 
                 <div className="text-md font-bold text-blue-600">
-                  {(productionData?.current_length.value ?? 0/(productionData?.target_length.value ?? 1) *100).toFixed(2)}%</div>
+                  <span className="text-green-600">{productionData?.current_length.value} </span>/
+                  <span className="text-blue-600"> {productionData?.target_length.value } </span>
+                </div>
+              }
               </CardContent>
             </Card>
 

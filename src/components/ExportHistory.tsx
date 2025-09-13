@@ -1,8 +1,6 @@
 'use client'
 
 import React from 'react'
-import { useExportHistory } from '@/hooks/useApi'
-// import { ExportTask } from '@/types' // 移除未使用的导入
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
   Table,
@@ -13,10 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip'
 import {
   Popover,
@@ -24,18 +19,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import { DataPagination } from '@/components/ui/data-pagination'
+import { usePagination } from '@/hooks/usePagination'
 
 // 扩展 dayjs 以支持时区
 dayjs.extend(utc)
 dayjs.extend(timezone)
 import {
-  Download,
-  Clock,
-  CheckCircle,
   AlertCircle,
   Loader2,
   History,
@@ -56,10 +49,30 @@ const formatFileSize = (bytes: number): string => {
 }
 
 export default function ExportHistory() {
+  // 使用分页 hook
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    getPaginationInfo
+  } = usePagination()
+
   const { data: exportRecords, isLoading, error } = useExportRecords()
 
   const { data: availableLines } = useAvailableProductionLines()
   const lineNames = availableLines?.items.map(line => line.name) || []
+
+  // 计算分页数据
+  const allRecords = exportRecords?.items || []
+  const totalItems = allRecords.length
+  const paginationInfo = getPaginationInfo(totalItems)
+  
+  // 获取当前页的数据
+  const currentPageRecords = allRecords.slice(
+    paginationInfo.startIndex,
+    paginationInfo.startIndex + pageSize
+  )
 
   if (isLoading) {
     return (
@@ -107,7 +120,7 @@ export default function ExportHistory() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {exportRecords?.items?.map((record: ExportRecord) => {
+              {currentPageRecords.map((record: ExportRecord) => {
                 const dataFields = record.fields.split(',')
                 const productionLines = record.line_names.split(',')
                 return (
@@ -211,8 +224,20 @@ export default function ExportHistory() {
           </Table>
         </div>
 
+        {/* 分页组件 */}
+        {totalItems > 0 && (
+          <DataPagination
+            currentPage={currentPage}
+            totalPages={paginationInfo.totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
+
         {/* 空状态提示 */}
-        {exportRecords?.items?.length === 0 && (
+        {allRecords.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>暂无导出历史记录</p>
