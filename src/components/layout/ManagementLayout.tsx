@@ -6,6 +6,8 @@ import ManagementSidebar from './ManagementSidebar'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import MobileBottomTabs, { getTabsForPath } from './MobileBottomTabs'
+import { usePathname } from 'next/navigation'
 
 interface ManagementLayoutProps {
   children: React.ReactNode
@@ -19,7 +21,8 @@ export default function ManagementLayout({
   description = "管理系统配置和用户权限"
 }: ManagementLayoutProps) {
   const { hasRole } = useSupabaseAuth()
-
+  const pathname = usePathname()
+  
   // 检查用户是否有管理权限
   if (!hasRole(['user', 'admin', 'super_admin'])) {
     return (
@@ -47,22 +50,15 @@ export default function ManagementLayout({
         
         {/* 主要内容区域 */}
         <div className="flex-1 flex flex-col min-w-0 bg-background">
-          {/* 内容头部 */}
-          {/* <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold">{title}</h1>
-              {description && (
-                <p className="text-muted-foreground mt-1">{description}</p>
-              )}
-            </div>
-          </div> */}
-          
-          {/* 内容主体 */}
-          <div className="flex-1 p-1 overflow-auto bg-background">
+          {/* 内容主体 - 移动端底部留出空间给底部导航 */}
+          <div className="flex-1 p-1 overflow-auto bg-background pb-20 md:pb-1">
             {children}
           </div>
         </div>
       </div>
+
+      {/* 移动端底部导航 */}
+      <MobileBottomTabs items={getTabsForPath(pathname, hasRole)} />
     </AppLayout>
   )
 }

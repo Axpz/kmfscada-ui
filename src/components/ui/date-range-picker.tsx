@@ -125,6 +125,8 @@ export function DateRangePicker({
   React.useEffect(() => {
     if (value) {
       setRange(value)
+    } else {
+      setRange({ from: undefined, to: undefined })
     }
   }, [value])
 

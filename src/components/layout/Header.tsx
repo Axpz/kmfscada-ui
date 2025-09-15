@@ -26,9 +26,10 @@ const mainNavLinks = [
 interface HeaderProps {
   onMenuClick: () => void;
   sidebarOpen?: boolean;
+  showMobileMenu?: boolean;
 }
 
-export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps) {
+export default function Header({ onMenuClick, sidebarOpen = false, showMobileMenu = true }: HeaderProps) {
   const { hasRole } = useSupabaseAuth();
   const pathname = usePathname();
 
@@ -69,12 +70,14 @@ export default function Header({ onMenuClick, sidebarOpen = false }: HeaderProps
         !sidebarOpen && "container mx-auto"
       )}>
         {/* Mobile Menu Button */}
-        <div className="md:hidden mr-4">
-          <Button variant="ghost" size="icon" onClick={onMenuClick}>
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-        </div>
+        {showMobileMenu && (
+          <div className="md:hidden mr-4">
+            <Button variant="ghost" size="icon" onClick={onMenuClick}>
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
+          </div>
+        )}
 
         {/* Desktop Logo */}
         <div className="mr-6 hidden md:flex">

@@ -129,7 +129,7 @@ export const useToggleAlarmRule = () => {
       toggleAlarmRule(id, enabled),
     onSuccess: (_, { id, enabled }) => {
       const action = enabled ? '启用' : '禁用'
-      toast.success(`报警规则${action}成功`)
+      toast.success(`${action}报警规则成功`)
       // 使相关查询失效
       queryClient.invalidateQueries({ queryKey: alarmRuleKeys.lists() })
       queryClient.invalidateQueries({ queryKey: alarmRuleKeys.detail(id) })

@@ -85,7 +85,7 @@ const DataPagination = ({
 
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex items-center space-x-6 lg:space-x-1">
+      <div className="hidden md:flex items-center space-x-6 lg:space-x-1">
         <div className="flex items-center">
           {showPageSizeSelector && onPageSizeChange && (
             <Select

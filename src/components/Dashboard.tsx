@@ -984,7 +984,7 @@ const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTime
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-md">
             <Gauge className="h-5 w-5" />
-            电机监控
+            主机监控
           </CardTitle>
         </CardHeader>
         <CardContent className='pb-0'>

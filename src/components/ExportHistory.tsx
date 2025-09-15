@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
   Table,
@@ -33,6 +33,7 @@ import {
   Loader2,
   History,
   ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { useAvailableProductionLines } from '@/hooks/useProductionLines'
 import { ExportRecord, useExportRecords } from '@/hooks/useExportRecords'
@@ -94,7 +95,7 @@ export default function ExportHistory() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         {/* 页面头部 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -105,18 +106,18 @@ export default function ExportHistory() {
           </div>
         </div>
 
-        {/* 导出历史表格 */}
-        <div className="rounded-md border">
+        {/* 桌面端表格 */}
+        <div className="hidden md:block rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>生产线</TableHead>
-                <TableHead className="hidden sm:table-cell">数据字段</TableHead>
-                <TableHead>时间范围</TableHead>
-                <TableHead className="hidden sm:table-cell">格式</TableHead>
-                <TableHead className="hidden sm:table-cell">文件大小</TableHead>
-                <TableHead>创建时间</TableHead>
-                <TableHead>状态</TableHead>
+                <TableHead className="min-w-[120px]">生产线</TableHead>
+                <TableHead className="min-w-[150px]">数据字段</TableHead>
+                <TableHead className="min-w-[140px]">时间范围</TableHead>
+                <TableHead className="hidden lg:table-cell">格式</TableHead>
+                <TableHead className="hidden lg:table-cell">文件大小</TableHead>
+                <TableHead className="min-w-[140px]">创建时间</TableHead>
+                <TableHead className="min-w-[80px]">状态</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -161,7 +162,7 @@ export default function ExportHistory() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm">
+                    <TableCell className="text-sm">
                       {dataFields.length <= 2 ? (
                         <span>{dataFields.join(', ')}</span>
                       ) : (
@@ -207,10 +208,10 @@ export default function ExportHistory() {
                         <span className="text-muted-foreground">配置缺失</span>
                       )}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {record.format ? record.format.toUpperCase() : '-'}
+                    <TableCell className="hidden lg:table-cell">
+                      {record.format ? record.format : '-'}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell className="hidden lg:table-cell">
                       {record.size ? formatFileSize(record.size) : '-'}
                     </TableCell>
                     <TableCell>
@@ -224,16 +225,34 @@ export default function ExportHistory() {
           </Table>
         </div>
 
+        {/* 移动端卡片布局 */}
+        <div className="md:hidden space-y-3">
+          {currentPageRecords.map((record: ExportRecord) => {
+            const dataFields = record.fields.split(',')
+            const productionLines = record.line_names.split(',')
+            return (
+              <ExportRecordCard 
+                key={record.id} 
+                record={record} 
+                productionLines={productionLines}
+                dataFields={dataFields}
+              />
+            )
+          })}
+        </div>
+
         {/* 分页组件 */}
         {totalItems > 0 && (
-          <DataPagination
-            currentPage={currentPage}
-            totalPages={paginationInfo.totalPages}
-            pageSize={pageSize}
-            totalItems={totalItems}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
-          />
+          <div className="flex justify-center">
+            <DataPagination
+              currentPage={currentPage}
+              totalPages={paginationInfo.totalPages}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
         )}
 
         {/* 空状态提示 */}
@@ -245,5 +264,142 @@ export default function ExportHistory() {
         )}
       </div>
     </TooltipProvider>
+  )
+}
+
+// 移动端导出记录卡片组件
+interface ExportRecordCardProps {
+  record: ExportRecord
+  productionLines: string[]
+  dataFields: string[]
+}
+
+function ExportRecordCard({ record, productionLines, dataFields }: ExportRecordCardProps) {
+  const [showAllLines, setShowAllLines] = useState(false)
+  const [showAllFields, setShowAllFields] = useState(false)
+
+  const shouldShowLinesToggle = productionLines.length > 2
+  const shouldShowFieldsToggle = dataFields.length > 2
+
+  return (
+    <div className="p-4 rounded-lg border bg-card">
+      {/* 卡片头部 */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex-1 min-w-0">
+          {/* 生产线信息 */}
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <span>生产线:</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {shouldShowLinesToggle && !showAllLines ? (
+                <div className="space-y-1">
+                  <div>{productionLines.slice(0, 2).join(', ')}</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground p-0"
+                    onClick={() => setShowAllLines(true)}
+                  >
+                    +{productionLines.length - 2}个
+                    <ChevronDown className="ml-1 h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <div>{productionLines.join(', ')}</div>
+                  {shouldShowLinesToggle && showAllLines && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground p-0"
+                      onClick={() => setShowAllLines(false)}
+                    >
+                      收起
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 数据字段信息 */}
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm">数据字段:</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {shouldShowFieldsToggle && !showAllFields ? (
+                <div className="space-y-1">
+                  <div>{dataFields.slice(0, 2).join(', ')}</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground p-0"
+                    onClick={() => setShowAllFields(true)}
+                  >
+                    +{dataFields.length - 2}个
+                    <ChevronDown className="ml-1 h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <div>{dataFields.join(', ')}</div>
+                  {shouldShowFieldsToggle && showAllFields && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground p-0"
+                      onClick={() => setShowAllFields(false)}
+                    >
+                      收起
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <StatusBadge status={record.status} />
+      </div>
+      
+      {/* 时间范围信息 */}
+      <div className="mb-3 flex justify-between text-sm">
+        <span className="text-sm">时间范围:</span>
+        <span className="text-sm text-muted-foreground">
+          {record.start_time && record.end_time ? (
+            <>
+              {dayjs.utc(record.start_time).local().format('YYYY-MM-DD')} 至{' '}
+              {dayjs.utc(record.end_time).local().format('YYYY-MM-DD')}
+            </>
+          ) : (
+            <span className="text-muted-foreground">无</span>
+          )}
+        </span>
+      </div>
+
+      <div className="mb-3 flex justify-between text-sm">
+        <span>格式:</span>
+        <span className='text-muted-foreground'>{record.format ? record.format : '-'}</span>
+      </div>
+
+      {/* 格式和文件大小 */}
+      <div className="mb-3 flex justify-between text-sm">
+        {record.size && (
+          <>
+            <span>大小:</span>
+            <span className='text-muted-foreground'>{formatFileSize(record.size)}</span>
+          </>
+        )}
+      </div>
+      
+      {/* 创建时间 */}
+      <div className="mb-3 flex justify-between text-sm">
+        <span>创建时间:</span>
+        <span className='text-muted-foreground'>{dayjs.utc(record.updated_at).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+      </div>
+    </div>
   )
 }

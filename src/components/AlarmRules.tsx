@@ -57,7 +57,6 @@ import dayjs from 'dayjs'
 import {
   Loader2,
   AlertCircle,
-  Save,
   Settings,
   PlusCircle,
   Edit,
@@ -155,8 +154,8 @@ const AlarmRuleForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6">
+    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+      <div className="grid gap-4 md:gap-6">
         {/* 生产线选择 */}
         <div className="grid gap-2">
           <Label htmlFor="production_line" className="text-sm font-medium">
@@ -213,7 +212,7 @@ const AlarmRuleForm = ({
             <Input
               id="lower_limit"
               type="number"
-              step="0.001"
+              step="0.01"
               value={formData.lower_limit}
               onChange={(e) => setFormData(prev => ({ ...prev, lower_limit: Number(e.target.value) }))}
               className="h-10"
@@ -229,7 +228,7 @@ const AlarmRuleForm = ({
             <Input
               id="upper_limit"
               type="number"
-              step="0.001"
+              step="0.01"
               value={formData.upper_limit}
               onChange={(e) => setFormData(prev => ({ ...prev, upper_limit: Number(e.target.value) }))}
               className="h-10"
@@ -248,18 +247,20 @@ const AlarmRuleForm = ({
               checked={formData.enabled}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, enabled: checked }))}
             />
+            <span className="text-sm">
               {formData.enabled ? '已启用' : '已禁用'}
+            </span>
           </div>
         </div>
       </div>
 
-      <DialogFooter className="gap-2 pt-6">
+      <DialogFooter className="gap-2 pt-4 md:pt-6">
         <DialogClose asChild>
-          <Button type="button" variant="outline" className="h-10">
+          <Button type="button" variant="outline" className="h-10 flex-1 md:flex-initial">
             取消
           </Button>
         </DialogClose>
-        <Button type="submit" className="h-10">
+        <Button type="submit" className="h-10 flex-1 md:flex-initial">
           {isEdit ? '保存更改' : '创建规则'}
         </Button>
       </DialogFooter>
@@ -298,7 +299,6 @@ export default function AlarmRules() {
       }
     })
   }, [alarmRules])
-
 
   // 排序后的规则
   const sortedRules = useMemo(() => {
@@ -408,79 +408,82 @@ export default function AlarmRules() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* 页面头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">报警规则</h2>
-          <p className="text-sm text-muted-foreground">
-            管理生产线的报警规则配置，设置监控参数的阈值和启用状态
-          </p>
+      <div className="flex flex-col gap-3 md:gap-4">
+        <div className="flex flex-row items-start justify-between">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-semibold">报警规则</h2>
+            <p className="text-sm text-muted-foreground">
+              管理生产线的报警规则配置
+            </p>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex-1 sm:flex-initial">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                添加报警规则
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>创建报警规则</DialogTitle>
+              </DialogHeader>
+              <AlarmRuleForm
+                onSubmit={handleCreateRule}
+                onClose={() => setCreateDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              添加报警规则
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>创建报警规则</DialogTitle>
-            </DialogHeader>
-            <AlarmRuleForm
-              onSubmit={handleCreateRule}
-              onClose={() => setCreateDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
 
-      {/* 报警规则表格 */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('line_id')}
-                >
-                  生产线
-                  {getSortIcon('line_id')}
-                </Button>
-              </TableHead>
-              <TableHead>监控参数</TableHead>
-              <TableHead>下限值</TableHead>
-              <TableHead>上限值</TableHead>
-              <TableHead>启用状态</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('created_at')}
-                >
-                  创建时间
-                  {getSortIcon('created_at')}
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('updated_at')}
-                >
-                  修改时间
-                  {getSortIcon('updated_at')}
-                </Button>
-              </TableHead>
-              <TableHead>操作</TableHead>
-            </TableRow>
-          </TableHeader>
+      {/* 桌面端报警规则表格 */}
+      <div className="rounded-md border overflow-hidden hidden md:block">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => handleSort('line_id')}
+                  >
+                    生产线
+                    {getSortIcon('line_id')}
+                  </Button>
+                </TableHead>
+                <TableHead>监控参数</TableHead>
+                <TableHead>下限值</TableHead>
+                <TableHead>上限值</TableHead>
+                <TableHead>启用状态</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => handleSort('created_at')}
+                  >
+                    创建时间
+                    {getSortIcon('created_at')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => handleSort('updated_at')}
+                  >
+                    修改时间
+                    {getSortIcon('updated_at')}
+                  </Button>
+                </TableHead>
+                <TableHead>操作</TableHead>
+              </TableRow>
+            </TableHeader>
           <TableBody>
             {sortedRules.map((rule) => (
               <TableRow key={rule.id}>
@@ -489,10 +492,10 @@ export default function AlarmRules() {
                 </TableCell>
                 <TableCell>{ALARM_RULE_PARAMETERS.find(p => p.value === rule.parameter_name)?.label}</TableCell>
                 <TableCell>
-                  {rule.lower_limit.toFixed(3)}
+                  {rule.lower_limit.toFixed(2)}
                 </TableCell>
                 <TableCell>
-                  {rule.upper_limit.toFixed(3)}
+                  {rule.upper_limit.toFixed(2)}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -518,12 +521,12 @@ export default function AlarmRules() {
                     }}>
                       <DialogTrigger asChild>
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRule(rule);
-                            setEditDialogOpen(true);
-                          }}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRule(rule);
+                              setEditDialogOpen(true);
+                            }}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -568,15 +571,123 @@ export default function AlarmRules() {
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* 移动端卡片布局 */}
+      <div className="md:hidden space-y-3">
+        {sortedRules.map((rule) => (
+          <div key={rule.id} className="p-4 rounded-lg border bg-card">
+            {/* 卡片头部 */}
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {rule.line_id === '*' ? '所有生产线' : `生产线: ${rule.line_id}`}
+                </div>
+                <h3 className="font-medium text-sm mb-2 break-words text-muted-foreground">
+                  {ALARM_RULE_PARAMETERS.find(p => p.value === rule.parameter_name)?.label}
+                </h3>
+              </div>
+            </div>
+            
+            {/* 阈值信息 */}
+            <div className="flex items-center gap-4 mb-3 text-muted-foreground text-sm">
+              <div className="flex items-center gap-1">
+                <span>下限值:</span>
+                <span>{rule.lower_limit.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>上限值:</span>
+                <span>{rule.upper_limit.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 mb-3 text-muted-foreground text-sm">
+              <Switch
+                checked={rule.enabled}
+                onCheckedChange={(enabled) => handleToggleRule(rule.id!, enabled)}
+                disabled={toggleMutation.isPending}
+              />
+              <span>
+                {rule.enabled ? '已启用' : '已禁用'}
+              </span>
+            </div>
+            
+            {/* 时间信息 */}
+            <div className="text-sm text-muted-foreground mb-3">
+              更新时间: {dayjs(rule.updated_at).format('YYYY-MM-DD HH:mm:ss')}
+            </div>
+            
+            {/* 操作按钮 */}
+            <div className="flex items-center gap-2 pt-3">
+              <Dialog open={isEditDialogOpen && selectedRule?.id === rule.id} onOpenChange={(open) => {
+                if (!open) setSelectedRule(undefined);
+                setEditDialogOpen(open);
+              }}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedRule(rule);
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                    编辑
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>编辑报警规则: {selectedRule?.line_id === '*' ? '所有生产线' : `${selectedRule?.line_id}`}</DialogTitle>
+                  </DialogHeader>
+                  {selectedRule && (
+                    <AlarmRuleForm
+                      rule={selectedRule}
+                      onSubmit={handleEditRule}
+                      onClose={() => setEditDialogOpen(false)}
+                      isEdit={true}
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-1 text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    删除
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      此操作无法撤销。这将永久删除生产线 <strong>{rule.line_id === '*' ? '所有生产线' : `${rule.line_id}`}</strong> 的报警规则。
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteRule(rule.id!)}>
+                      继续删除
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 空状态提示 */}
       {sortedRules.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>暂无报警规则数据</p>
+        <div className="text-center py-8 md:py-12 px-4 text-muted-foreground">
+          <Settings className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
+          <p className="text-base md:text-lg font-medium mb-2">暂无报警规则数据</p>
+          <p className="text-sm">点击上方按钮创建第一个报警规则</p>
         </div>
       )}
     </div>

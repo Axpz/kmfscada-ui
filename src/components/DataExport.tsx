@@ -231,7 +231,7 @@ export default function DataExport() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6">
             {/* 页面头部 */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -243,7 +243,7 @@ export default function DataExport() {
             </div>
 
             {/* 导出配置表单 */}
-            <div className="space-y-8">
+            <div className="space-y-6 md:space-y-8">
                 {/* 时间范围配置 */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -255,13 +255,13 @@ export default function DataExport() {
                         <DateRangePicker
                             value={dateRange}
                             onChange={setDateRange}
-                            className="max-w-xs"
+                            className="w-full max-w-xs"
                         />
                     </div>
                 </div>
 
                 {/* 数据选择 */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     {/* 环境数据字段 */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -281,7 +281,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {ENVIRONMENT_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -322,7 +322,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {productionLines?.items?.map(line => (
                                 <div key={line.id} className="flex items-center space-x-2">
                                     <Checkbox
@@ -364,7 +364,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {PRODUCTION_BUSINESS_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -407,7 +407,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {TEMPERATURE_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -450,7 +450,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {CURRENT_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -493,7 +493,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {MOTOR_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -536,7 +536,7 @@ export default function DataExport() {
                                 </Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-6">
                             {WINDER_CATEGORIES.fields.map(field => (
                                 <div key={field.value} className="flex items-center space-x-2">
                                     <Checkbox
@@ -573,7 +573,7 @@ export default function DataExport() {
                 </div>
 
                 {/* 导出按钮 */}
-                <div className="pt-6 flex justify-center">
+                <div className="pt-4 md:pt-6 flex justify-center">
                     <Button
                         onClick={handleExport}
                         disabled={
@@ -584,7 +584,7 @@ export default function DataExport() {
                                 selectedLines.length === 0 || selectedFields.length === 0
                             ) && selectedFields.filter(field => field === 'fluoride_concentration').length === 0
                         }
-                        className="h-10"
+                        className="h-10 w-full sm:w-auto"
                     >
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         <Download className="mr-2 h-4 w-4" />

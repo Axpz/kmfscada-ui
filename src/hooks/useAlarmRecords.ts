@@ -26,7 +26,6 @@ export const useAlarmRecordsList = (filters: AlarmRecordFilter) => {
     queryFn: () => getAlarmRecordsList(filters),
     staleTime: 0, // 立即过期，确保数据总是最新的
     gcTime: 5 * 60 * 1000,    // 5分钟
-    refetchInterval: 5 * 1000, // 每5秒自动刷新
     refetchIntervalInBackground: false, // 即使页面不在前台也继续刷新
     refetchOnWindowFocus: true, // 窗口获得焦点时刷新
   })

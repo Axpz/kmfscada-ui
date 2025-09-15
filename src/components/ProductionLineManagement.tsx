@@ -240,7 +240,7 @@ export default function ProductionLineManagement() {
   return (
     <div className="space-y-6">
       {/* 页面头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-row justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold">生产线列表</h2>
           <p className="text-sm text-muted-foreground">
@@ -256,7 +256,7 @@ export default function ProductionLineManagement() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle></DialogTitle>
+              <DialogTitle>添加生产线</DialogTitle>
             </DialogHeader>
             <ProductionLineForm 
               onSubmit={handleCreateLine}

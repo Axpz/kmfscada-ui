@@ -1,8 +1,10 @@
 'use client'
 
 import React from 'react'
+import { usePathname } from 'next/navigation'
 import AppLayout from './AppLayout'
 import VisualizationSidebar from './VisualizationSidebar'
+import MobileBottomTabs, { getTabsForPath } from './MobileBottomTabs'
 import { Role } from '@/types';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { BarChart3 } from 'lucide-react'
@@ -20,6 +22,7 @@ export default function VisualizationLayout({
   description = "数据可视化与分析展示"
 }: VisualizationLayoutProps) {
   const { hasRole } = useSupabaseAuth()
+  const pathname = usePathname()
 
   // 检查用户是否有可视化功能权限
   if (!hasRole(['super_admin', 'admin', 'user'] as Role[])) {
@@ -43,27 +46,19 @@ export default function VisualizationLayout({
   return (
     <AppLayout>
       <div className="flex h-full bg-background">
-        {/* 可视化功能侧边栏 */}
+        {/* Desktop Sidebar */}
         <VisualizationSidebar className="flex-shrink-0" />
 
-        {/* 主要内容区域 */}
+        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 bg-background">
-          {/* 内容头部 */}
-          {/* <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold">{title}</h1>
-              {description && (
-                <p className="text-muted-foreground mt-1">{description}</p>
-              )}
-            </div>
-          </div> */}
-
-          {/* 内容主体 */}
-          <div className="flex-1 p-1 overflow-auto bg-background">
+          <div className="flex-1 p-1 overflow-auto bg-background mb-16 md:mb-0">
             {children}
           </div>
         </div>
       </div>
+      
+      {/* Mobile Bottom Tabs */}
+      <MobileBottomTabs items={getTabsForPath(pathname)} />
     </AppLayout>
   )
 }

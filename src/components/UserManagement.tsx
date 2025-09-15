@@ -304,7 +304,7 @@ export default function UserManagement() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
-  const { user: currentUser } = useSupabaseAuth()
+  const { user: currentUser, hasRole } = useSupabaseAuth()
 
   const { data: users, isLoading, error } = useUsers()
   const { mutate: deleteUser } = useDeleteUser()
@@ -314,6 +314,32 @@ export default function UserManagement() {
       onSuccess: () => toast.success('用户已成功删除！'),
       onError: (error) => toast.error(`删除失败: ${error.message}`),
     })
+  }
+
+  const isPriviledge = (user: User) => {
+    let canEdit = false
+    let canDelete = false
+
+    if (hasRole(['super_admin'])) {
+      canEdit = true
+      canDelete = currentUser?.id !== user.id
+      return {canEdit, canDelete}
+    }
+
+    if (hasRole(['admin'])) {
+      if (user.user_metadata.role === 'super_admin') {
+        canEdit = false
+        canDelete = false
+      } else {
+        canEdit = true
+        canDelete = currentUser?.id !== user.id
+      }
+      return {canEdit, canDelete}
+    }
+
+    canEdit = false
+    canDelete = false
+    return {canEdit, canDelete}
   }
 
   if (isLoading) {
@@ -337,7 +363,7 @@ export default function UserManagement() {
   return (
     <div className="space-y-6">
       {/* 页面头部 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-row justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold">用户列表</h2>
           <p className="text-sm text-muted-foreground">
@@ -373,7 +399,9 @@ export default function UserManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map((user: User) => (
+            {users?.map((user: User) => {
+              const {canEdit, canDelete} = isPriviledge(user)
+              return (
               <TableRow key={user.id}>
                 <TableCell>{user.user_metadata.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
@@ -390,10 +418,14 @@ export default function UserManagement() {
                       setEditDialogOpen(open);
                     }}>
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" onClick={() => {
-                          setSelectedUser(user);
-                          setEditDialogOpen(true);
-                        }}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={!canEdit}
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setEditDialogOpen(true);
+                          }}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -412,7 +444,7 @@ export default function UserManagement() {
                           size="sm" 
                           className="text-destructive 
                           hover:text-destructive" 
-                          disabled={user.id === currentUser?.id}>
+                          disabled={!canDelete}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -434,7 +466,8 @@ export default function UserManagement() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              )
+            })}
           </TableBody>
         </Table>
       </div>

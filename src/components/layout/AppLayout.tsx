@@ -20,6 +20,7 @@ import { cn } from '../../lib/utils'
 import Header from './Header'
 import { Role } from '@/types'
 import Logo from './Logo'
+import MobileDrawer from './MobileDrawer'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -41,6 +42,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
 
   useEffect(() => {
     // 只有在认证系统初始化完成后才进行路由判断
@@ -107,10 +109,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen w-full flex">
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-48 lg:w-56 xl:w-64 flex-col transition-transform duration-300 ease-in-out md:flex',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'hidden md:fixed md:inset-y-0 md:left-0 md:z-50 md:w-48 lg:w-56 xl:w-64 md:flex md:flex-col transition-transform duration-300 ease-in-out',
+          sidebarOpen ? 'md:translate-x-0' : 'md:-translate-x-full'
         )}
       >
         <div className="flex items-center justify-between h-16 px-4 border-b">
@@ -118,46 +121,34 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <Package2 className="h-6 w-6" />
             <span className="">Acme Inc</span>
           </Link>
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
-            <Logo />
-          </Button>
         </div>
         <nav className="flex-1 space-y-1 p-2">
-          {/* 主要功能导航 */}
           <div className="space-y-1">
             {filteredMainItems.map(item => (
               <NavLink key={item.href} {...item} />
             ))}
           </div>
-
-          {/* 系统管理分组 */}
-          {filteredSystemItems.length > 0 && (
-            <div className="pt-4">
-              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                系统管理
-              </div>
-              <div className="space-y-1">
-                {filteredSystemItems.map(item => (
-                  <NavLink key={item.href} {...item} />
-                ))}
-              </div>
-            </div>
-          )}
         </nav>
       </aside>
+
+      {/* Mobile Drawer */}
+      <MobileDrawer
+        open={mobileDrawerOpen}
+        onOpenChange={setMobileDrawerOpen}
+      />
 
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300 ease-in-out",
         sidebarOpen ? "md:ml-56" : "md:ml-0"
       )}>
         <Header
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          onMenuClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-auto">
           <div className={cn(
             "min-h-full p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out",
-            !sidebarOpen && "container mx-auto"
+            !sidebarOpen && "md:container md:mx-auto"
           )}>
             {children}
           </div>

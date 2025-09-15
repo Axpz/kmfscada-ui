@@ -40,7 +40,7 @@ export default function AlarmSidebar({ className }: AlarmSidebarProps) {
   })
 
   return (
-    <div className={cn("w-56 hidden md:flex md:flex-col", className)}>
+    <div className={cn("w-56 hidden md:flex md:flex-col bg-background", className)}>
       <nav className="flex-1 space-y-1 p-2">
         <div className="space-y-1">
           {filteredNavItems.map((item) => {
