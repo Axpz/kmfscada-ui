@@ -43,17 +43,13 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  RadialBarChart,
-  RadialBar,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts'
 import { GaugesDashboard } from '@/components/ui/gauges-dashboard'
 import { useWebSocket } from '@/hooks/useWebsocket'
 import { getProductionStatus } from '@/lib/utils'
 import { SensorValueView } from './ui/sensor-value-view'
-import { Sen } from 'next/font/google'
+import { useVideoStreams } from '@/hooks/useVideo'
+import type { EzvizStream } from '@/lib/api-video'
 
 interface CameraData {
   id: string
@@ -67,182 +63,6 @@ interface CameraData {
   videoUrl?: string
 }
 
-const generateCameraData = (lineId: string): CameraData[] => {
-  // Enhanced mock data based on the provided camera list
-  const mockCameras = [
-    {
-      id: 3,
-      name: '冷却水桶',
-      status: 'online' as const,
-      resolution: '1920x1080',
-      fps: 30,
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4'
-    },
-    {
-      id: 6,
-      name: '收卷位置',
-      status: 'warning' as const,
-      resolution: '1280x720',
-      fps: 20,
-      videoUrl: 'https://www.w3schools.com/html/movie.mp4'
-    },
-    {
-      id: 9,
-      name: '包装传送',
-      status: 'offline' as const,
-      resolution: '1920x1080',
-      fps: 0,
-      videoUrl: ''
-    },
-    {
-      id: 12,
-      name: '出料监控',
-      status: 'online' as const,
-      resolution: '1920x1080',
-      fps: 25,
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4'
-    },
-    {
-      id: 13,
-      name: '辅助设备',
-      status: 'online' as const,
-      resolution: '1920x1080',
-      fps: 30,
-      videoUrl: 'https://www.w3schools.com/html/movie.mp4'
-    },
-    {
-      id: 15,
-      name: '包装出口',
-      status: 'offline' as const,
-      resolution: '1920x1080',
-      fps: 0,
-      videoUrl: ''
-    }
-  ]
-
-  return mockCameras.map(camera => ({
-    id: `${lineId}-CAM-${camera.id.toString().padStart(2, '0')}`,
-    name: camera.name,
-    location: camera.name, // Using name as location for simplicity
-    status: camera.status,
-    resolution: camera.resolution,
-    fps: camera.fps,
-    lastUpdate: new Date().toLocaleTimeString('zh-CN'),
-    streamUrl: camera.status === 'offline' ? '' : `rtmp://stream.example.com/live/${lineId}-CAM-${camera.id}`,
-    videoUrl: camera.videoUrl
-  }))
-}
-
-const useCameraSwitcher = (cameras: CameraData[]) => {
-  const [currentCameraIndex, setCurrentCameraIndex] = useState(0)
-  const [isAutoSwitching, setIsAutoSwitching] = useState(true)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  const onlineCameras = useMemo(() =>
-    cameras.filter(camera => camera.status === 'online'),
-    [cameras]
-  )
-
-  useEffect(() => {
-    if (!isAutoSwitching || onlineCameras.length === 0) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      return
-    }
-
-    intervalRef.current = setInterval(() => {
-      setCurrentCameraIndex(prevIndex =>
-        (prevIndex + 1) % onlineCameras.length
-      )
-    }, 10000)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [isAutoSwitching, onlineCameras.length])
-
-  useEffect(() => {
-    if (currentCameraIndex >= onlineCameras.length) {
-      setCurrentCameraIndex(0)
-    }
-  }, [onlineCameras.length, currentCameraIndex])
-
-  const currentCamera = onlineCameras[currentCameraIndex] || null
-
-  return {
-    currentCamera,
-    currentCameraIndex,
-    onlineCameras,
-    isAutoSwitching,
-    setIsAutoSwitching,
-    setCurrentCameraIndex
-  }
-}
-
-// KPI卡片组件
-const KpiCard = ({
-  title,
-  value,
-  icon: Icon,
-  unit,
-  color,
-}: {
-  title: string
-  value: string | number
-  icon: React.ElementType
-  unit?: string
-  color?: string
-}) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <Icon className={`h-4 w-4 text-muted-foreground ${color}`} />
-    </CardHeader>
-    <CardContent>
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      {unit && <p className="text-xs text-muted-foreground">{unit}</p>}
-    </CardContent>
-  </Card>
-)
-
-// 生产信息卡片
-const ProductionInfoCard = React.memo(({ lineData }: { lineData: ProductionLineData }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Package className="h-5 w-5 text-muted-foreground" />
-          生产信息
-        </CardTitle>
-        <CardDescription>生产线 #{lineData.line_id}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-4">
-          <div className="border-l-4 border-blue-500 pl-4 py-2">
-            <div className="text-xs text-muted-foreground mb-1">产品批号</div>
-            <div className="font-mono text-lg font-bold text-blue-600">{lineData.batch_product_number}</div>
-          </div>
-          <div className="border-l-4 border-green-500 pl-4 py-2">
-            <div className="text-xs text-muted-foreground mb-1">当前长度</div>
-            <div className="font-mono text-lg font-bold text-green-600">{lineData.current_length.value.toFixed(2)}</div>
-          </div>
-          <div className="border-l-4 border-purple-500 pl-4 py-2">
-            <div className="text-xs text-muted-foreground mb-1">目标长度</div>
-            <div className="font-mono text-lg font-bold text-purple-600">
-              {lineData.target_length.value.toLocaleString()}
-              <span className="text-sm text-muted-foreground ml-1">米</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-})
-
 // 温度监控面板
 const TemperaturePanel = React.memo(({ realTimeData, chartData }: { realTimeData: ProductionLineData, chartData: ChartDataPoint[] }) => {
   if (!realTimeData) return null
@@ -253,15 +73,47 @@ const TemperaturePanel = React.memo(({ realTimeData, chartData }: { realTimeData
 
   // 定义温度线的配置 - 使用 useMemo 避免重复创建
   const temperatureLines = useMemo(() => [
-    { key: 'temp_body_zone1', color: '#3b82f6' },
-    { key: 'temp_body_zone2', color: '#60a5fa' },
-    { key: 'temp_body_zone3', color: '#93c5fd' },
-    { key: 'temp_body_zone4', color: '#bfdbfe' },
-    { key: 'temp_flange_zone1', color: '#06b6d4' },
-    { key: 'temp_flange_zone2', color: '#22d3ee' },
-    { key: 'temp_mold_zone1', color: '#7c3aed' },
-    { key: 'temp_mold_zone2', color: '#8b5cf6' },
+    { key: 'temp_body_zone1', color: '#3b82f6', name: '机身1' },
+    { key: 'temp_body_zone2', color: '#60a5fa', name: '机身2' },
+    { key: 'temp_body_zone3', color: '#93c5fd', name: '机身3' },
+    { key: 'temp_body_zone4', color: '#bfdbfe', name: '机身4' },
+    { key: 'temp_flange_zone1', color: '#06b6d4', name: '法兰1' },
+    { key: 'temp_flange_zone2', color: '#22d3ee', name: '法兰2' },
+    { key: 'temp_mold_zone1', color: '#7c3aed', name: '模具1' },
+    { key: 'temp_mold_zone2', color: '#8b5cf6', name: '模具2' },
   ], []);
+
+  // 自定义 Tooltip 内容组件
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    console.log('CustomTooltip:', { active, payload, label })
+    
+    if (!active || !payload || !payload.length) {
+      return null
+    }
+
+    return (
+      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-md text-xs max-w-xs">
+        <div className="font-medium text-xs mb-1">
+          {new Date(label).toLocaleTimeString('zh-CN')}
+        </div>
+        <div className="space-y-1">
+          {payload.map((entry: any, index: number) => {
+            const line = temperatureLines.find(l => l.key === entry.dataKey)
+            return (
+              <div key={index} className="flex items-center gap-2 text-xs">
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span>{line?.name || entry.dataKey}:</span>
+                <span className="font-medium">{Number(entry.value).toFixed(1)}°C</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Card>
@@ -321,56 +173,54 @@ const TemperaturePanel = React.memo(({ realTimeData, chartData }: { realTimeData
         </div>
 
         {/* 温度趋势图 */}
-        <div className="h-40 w-full">
+        <div className="h-40 w-full relative">
           {chartData && chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart 
-                data={chartData} 
-                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                key={`temp-chart-${realTimeData.line_id}`}
-              >
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis
-                  dataKey="timestamp"
-                  tick={false}
-                  tickLine={false}
-                  axisLine={false}
-                  type="number"
-                  scale="time"
-                  domain={['dataMin', 'dataMax']}
-                />
-                <YAxis
-                  tick={{ fontSize: 9 }}
-                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                  width={35}
-                  domain={[150, 250]}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    color: 'hsl(var(--foreground))',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  labelFormatter={(value) => new Date(value).toLocaleTimeString()}
-                />
-                {temperatureLines.map((line) => (
-                  <Line
-                    key={line.key}
-                    type="monotone"
-                    dataKey={line.key}
-                    stroke={line.color}
-                    strokeWidth={1.5}
-                    dot={false}
-                    connectNulls
-                    isAnimationActive={false}
+            <>
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsLineChart 
+                  data={chartData} 
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  key={`temp-chart-${realTimeData.line_id}`}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tick={false}
+                    tickLine={false}
+                    axisLine={false}
+                    type="number"
+                    scale="time"
+                    domain={['dataMin', 'dataMax']}
                   />
-                ))}
-              </RechartsLineChart>
-            </ResponsiveContainer>
+                  <YAxis
+                    tick={{ fontSize: 9 }}
+                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                    axisLine={{ stroke: 'hsl(var(--border))' }}
+                    width={35}
+                    domain={[150, 250]}
+                  />
+                  {/* 使用自定义 Tooltip */}
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 }}
+                    position={{ x: 0, y: -30 }}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                  />
+                  {temperatureLines.map((line) => (
+                    <Line
+                      key={line.key}
+                      type="monotone"
+                      dataKey={line.key}
+                      stroke={line.color}
+                      strokeWidth={1.5}
+                      dot={false}
+                      connectNulls
+                      isAnimationActive={false}
+                    />
+                  ))}
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
@@ -482,7 +332,7 @@ const CurrentPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
                     backgroundColor: 'hsl(var(--popover))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px',
-                    fontSize: '11px',
+                    fontSize: '9px',
                     color: 'hsl(var(--foreground))',
                   }}
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
@@ -613,8 +463,22 @@ const WinderPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pro
                     backgroundColor: 'hsl(var(--popover))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px',
-                    fontSize: '11px',
+                    fontSize: '9px',
                     color: 'hsl(var(--foreground))',
+                    maxWidth: '220px',
+                    maxHeight: '80px',
+                    zIndex: 9999,
+                    padding: '4px',
+                    lineHeight: '1.0',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  allowEscapeViewBox={{ x: false, y: false }}
+                  offset={10}
+                  formatter={(value: any, name: string) => {
+                    const shortName = name.replace('temp_body_zone', 'B').replace('temp_flange_zone', 'F').replace('temp_mold_zone', 'M')
+                    return [`${Number(value).toFixed(1)}°C`, shortName]
                   }}
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
                   labelFormatter={(value) => new Date(value).toLocaleTimeString()}
@@ -703,6 +567,32 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
     }))
   }, [chartData])
 
+  // 直径 Tooltip
+  const DiameterTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null
+    return (
+      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-md text-xs max-w-xs">
+        <div className="font-medium text-xs mb-1">实时直径</div>
+        <div className="text-xs">
+          <span className="font-medium">{Number(payload[0].value).toFixed(3)} mm</span>
+        </div>
+      </div>
+    )
+  }
+
+  // 长度 Tooltip
+  const LengthTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null
+    return (
+      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-md text-xs max-w-xs">
+        <div className="font-medium text-xs mb-1">生产长度</div>
+        <div className="text-xs">
+          <span className="font-medium">{Number(payload[0].value).toFixed(1)} m</span>
+        </div>
+      </div>
+    )
+  }
+
   if (!realTimeData) return null
 
   return (
@@ -728,9 +618,12 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
 
         {/* 实时直径趋势图 */}
         <div className="space-y-2">
-          <div className="h-32 w-full">
+          <div className="h-32 w-full relative">
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={diameterChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <RechartsLineChart 
+                data={diameterChartData} 
+                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis
                   dataKey="index"
@@ -746,15 +639,9 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
                   domain={['dataMin - 0.01', 'dataMax + 0.01']}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    color: 'hsl(var(--foreground))',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: any) => [`${Number(value).toFixed(3)} mm`, '实时直径']}
+                  content={<DiameterTooltip />}
+                  cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 }}
+                  allowEscapeViewBox={{ x: false, y: true }}
                 />
                 <Line
                   type="monotone"
@@ -773,9 +660,12 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
         {/* 生产长度趋势图 */}
         <div className="space-y-2">
           {/* <h4 className="text-sm font-medium text-muted-foreground">生产长度趋势 (最近1分钟)</h4> */}
-          <div className="h-32 w-full">
+          <div className="h-32 w-full relative">
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={lengthChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <RechartsLineChart 
+                data={lengthChartData} 
+                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis
                   dataKey="index"
@@ -791,15 +681,9 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
                   domain={['dataMin - 5', 'dataMax + 5']}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    color: 'hsl(var(--foreground))',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: any) => [`${Number(value).toFixed(1)} m`, '生产长度']}
+                  content={<LengthTooltip />}
+                  cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 }}
+                  allowEscapeViewBox={{ x: false, y: true }}
                 />
                 <Line
                   type="monotone"
@@ -821,9 +705,34 @@ const QualityPanel = React.memo(({ realTimeData, chartData }: { realTimeData: Pr
 
 // Enhanced Camera Monitor with video playback and improved UI
 const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
-  const cameras = useMemo(() => generateCameraData(lineId), [lineId])
-  const [selectedCameraId, setSelectedCameraId] = useState<string>('')
+  // 获取HLS视频流数据
+  const { data: videoStreamsResponse, isLoading: isLoadingStreams } = useVideoStreams({
+    protocol: 2, // HLS协议
+    quality: 1   // 高清
+  })
+  
+  const [selectedStreamIndex, setSelectedStreamIndex] = useState<number>(0)
   const [isAutoPlay, setIsAutoPlay] = useState(false)
+  const [autoPlaySpeed, setAutoPlaySpeed] = useState(5000) // 轮播速度
+
+  // 转换视频流数据为摄像头格式
+  const cameras = useMemo(() => {
+    if (!videoStreamsResponse?.items) return []
+    
+    return videoStreamsResponse.items.map((stream: EzvizStream, index: number) => ({
+      id: stream.id,
+      name: `摄像头 ${stream.channelNo}`,
+      location: `通道 ${stream.channelNo}`,
+      status: 'online' as const,
+      resolution: stream.quality === 1 ? '1920x1080' : '1280x720',
+      fps: 25,
+      lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+      streamUrl: stream.url,
+      videoUrl: stream.url, // HLS地址
+      deviceSerial: stream.deviceSerial,
+      channelNo: stream.channelNo
+    }))
+  }, [videoStreamsResponse])
 
   // Filter online cameras for auto-play
   const onlineCameras = useMemo(() =>
@@ -831,35 +740,42 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
     [cameras]
   )
 
+  // 当视频流很多时(>4个)自动启用轮播
+  useEffect(() => {
+    if (onlineCameras.length > 4 && !isAutoPlay) {
+      setIsAutoPlay(true)
+      setAutoPlaySpeed(3000) // 视频流多时加快轮播速度
+    } else if (onlineCameras.length <= 4 && onlineCameras.length > 0) {
+      setAutoPlaySpeed(5000) // 视频流少时正常轮播速度
+    }
+  }, [onlineCameras.length, isAutoPlay])
+
   // Set initial camera
   useEffect(() => {
-    if (onlineCameras.length > 0 && !selectedCameraId && onlineCameras[0]?.id) {
-      setSelectedCameraId(onlineCameras[0].id)
+    if (onlineCameras.length > 0) {
+      setSelectedStreamIndex(0)
     }
-  }, [onlineCameras, selectedCameraId])
+  }, [onlineCameras])
 
-  // Auto-play functionality
+  // Auto-play functionality with dynamic speed
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
-    if (isAutoPlay && onlineCameras.length > 0) {
+    if (isAutoPlay && onlineCameras.length > 1) {
       interval = setInterval(() => {
-        const currentIndex = onlineCameras.findIndex(c => c.id === selectedCameraId)
-        const nextIndex = (currentIndex + 1) % onlineCameras.length
-        const nextCamera = onlineCameras[nextIndex]
-        if (nextCamera?.id) {
-          setSelectedCameraId(nextCamera.id)
-        }
-      }, 5000) // Switch every 5 seconds
+        setSelectedStreamIndex(prevIndex => 
+          (prevIndex + 1) % onlineCameras.length
+        )
+      }, autoPlaySpeed)
     }
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isAutoPlay, onlineCameras, selectedCameraId])
+  }, [isAutoPlay, onlineCameras.length, autoPlaySpeed])
 
   // Find selected camera
-  const selectedCamera = cameras.find(c => c.id === selectedCameraId)
+  const selectedCamera = onlineCameras[selectedStreamIndex] || null
 
   // Status color mapping
   const getStatusColor = (status: string) => {
@@ -881,8 +797,8 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
+    <Card className="w-full flex flex-col min-h-[280px]">
+      <CardHeader className="pb-3 flex-shrink-0">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -890,57 +806,74 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
             </CardTitle>
             <span className="text-xs text-muted-foreground">
               在线：{onlineCameras.length} / 共 {cameras.length}
+              {onlineCameras.length > 4 && (
+                <span className="ml-2 px-1 bg-blue-500/20 text-blue-400 rounded">
+                  智能轮播
+                </span>
+              )}
             </span>
           </div>
 
           {/* Essential controls only */}
           <div className="flex items-center gap-2">
             {/* Camera selector */}
-            <Select value={selectedCameraId} onValueChange={(value) => {
-              setSelectedCameraId(value)
+            <Select value={selectedStreamIndex.toString()} onValueChange={(value) => {
+              setSelectedStreamIndex(parseInt(value))
               setIsAutoPlay(false) // Stop auto-play on manual selection
             }}>
               <SelectTrigger className="w-24 h-7 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {cameras.map((camera) => (
-                  <SelectItem key={camera.id} value={camera.id}>
-                    Cam {camera.id.split('-').pop()}
+                {onlineCameras.map((camera, index) => (
+                  <SelectItem key={camera.id} value={index.toString()}>
+                    Cam {camera.channelNo}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Auto-play toggle */}
+            {/* Auto-play toggle with speed indicator */}
             <button
               onClick={() => setIsAutoPlay(!isAutoPlay)}
-              className={`px-2 py-1 text-xs rounded-md font-semibold transition ${isAutoPlay
+              className={`px-2 py-1 text-xs rounded-md font-semibold transition flex items-center gap-1 ${isAutoPlay
                 ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
                 : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                 }`}
+              title={`轮播速度: ${autoPlaySpeed/1000}秒/次`}
             >
               {isAutoPlay ? '停止' : '轮播'}
+              {isAutoPlay && onlineCameras.length > 4 && (
+                <span className="text-[10px] opacity-75">快</span>
+              )}
             </button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent>
-        {/* Main video display area */}
-        <div className="relative bg-black rounded-lg overflow-hidden aspect-video flex items-center justify-center">
-          {selectedCamera?.status === 'offline' ? (
-            <div className="text-gray-500 text-sm">摄像头离线</div>
-          ) : selectedCamera?.videoUrl ? (
+      <CardContent className="flex-1 flex p-4">
+        {/* Main video display area - 移除aspect-video，使用flex-1填满剩余空间 */}
+        <div className="relative bg-black rounded-lg overflow-hidden w-full flex items-center justify-center">
+          {isLoadingStreams ? (
+            <div className="text-center text-white">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+              <p className="text-sm opacity-75">加载视频流...</p>
+            </div>
+          ) : !selectedCamera ? (
+            <div className="text-center text-white">
+              <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm opacity-75">暂无可用摄像头</p>
+            </div>
+          ) : selectedCamera.videoUrl ? (
             <video
-              key={selectedCamera.id} // Force re-render when camera changes
+              key={`${selectedCamera.id}-${selectedStreamIndex}`} // Force re-render when camera changes
               src={selectedCamera.videoUrl}
               autoPlay
-              loop
               muted
+              controls
               className="w-full h-full object-cover"
               onError={(e) => {
-                console.warn('Video failed to load:', selectedCamera.videoUrl)
+                console.warn('HLS视频流加载失败:', selectedCamera.videoUrl)
               }}
             />
           ) : (
@@ -967,6 +900,17 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
                   }`} />
                 {getStatusText(selectedCamera.status)}
               </div>
+              {/* 轮播进度指示器 */}
+              {isAutoPlay && onlineCameras.length > 1 && (
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                  <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse" />
+                  {selectedStreamIndex + 1} / {onlineCameras.length}
+                </div>
+              )}
+              {/* HLS标识 */}
+              <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                HLS
+              </div>
             </>
           )}
         </div>
@@ -978,9 +922,9 @@ const CameraMonitor = React.memo(({ lineId }: { lineId: string }) => {
 const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTimeData: ProductionLineData, chartData: ChartDataPoint[] }) => {
 
   return (
-    <div className="space-y-4">
+    <div className="h-full flex flex-col space-y-4">
       {/* 电机监控面板 - 三个仪表盘 */}
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-md">
             <Gauge className="h-5 w-5" />
@@ -992,7 +936,7 @@ const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTime
         </CardContent>
       </Card>
 
-      {realTimeData.winder_torque && realTimeData.winder_speed && realTimeData.winder_layer_count && realTimeData.winder_tube_count && <Card>
+      {realTimeData.winder_torque && realTimeData.winder_speed && realTimeData.winder_layer_count && realTimeData.winder_tube_count && <Card className="flex-shrink-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-md">
             <Gauge className="h-5 w-5" />
@@ -1004,8 +948,8 @@ const ProductionLineDetail = React.memo(({ realTimeData, chartData }: { realTime
         </CardContent>
       </Card>}
 
-      {/* 温度监控面板 */}
-      <div className="grid md:grid-cols-2 gap-4">
+      {/* 温度监控面板 - 填充剩余空间 */}
+      <div className="flex-1 grid md:grid-cols-2 gap-4 min-h-0">
         <TemperaturePanel realTimeData={realTimeData} chartData={chartData} />
         {/* <CurrentPanel realTimeData={realTimeData} chartData={chartData} /> */}
         <QualityPanel realTimeData={realTimeData} chartData={chartData} />
@@ -1066,15 +1010,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 h-full">
+    <div className="flex flex-col md:flex-row gap-4 min-h-[calc(100vh-120px)]">
       {/* Main content area - 3/4 width */}
-      <div className="w-full md:w-3/4 space-y-4">
-        {/* Header */}
-        <div className="flex flex-row lg:items-center lg:justify-between gap-4">
+      <div className="w-full md:w-3/4 flex flex-col space-y-4 overflow-hidden">
+        {/* Header - 固定不滚动 */}
+        <div className="flex-shrink-0 flex flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold">实时数据</h1>
               <Select value={selectedLineId} onValueChange={setSelectedLineId}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-48 focus:outline-none focus:ring-0">
                   <SelectValue placeholder="生产线" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1153,34 +1097,34 @@ export default function Dashboard() {
           </div>
         {/* )} */}
 
-        {/* Main Content */}
-        {productionData ? (
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-            {/* 生产线数据 - 占3列 */}
-            <div className="lg:col-span-4 space-y-4">
-              <div>
+        {/* Main Content - 完全隐藏滚动条 */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {productionData ? (
+            <div className="flex-1 flex flex-col">
+              {/* 生产线数据 - 填充剩余空间 */}
+              <div className="flex-1">
                 <ProductionLineDetail realTimeData={productionData} chartData={chartDataArray}/>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-muted/30 rounded-lg">
-            <WifiOff className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">请检查设备或重新选择生产线</h3>
-          </div>
-        )}
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <WifiOff className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold">请检查设备或重新选择生产线</h3>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Right sidebar area - 1/4 width */}
-      <div className="w-full md:w-1/4">
-        {productionData &&
-          <div className="space-y-4 h-fit">
-            <CameraMonitor lineId={productionData.line_id} />
-            <CameraMonitor lineId={productionData.line_id} />
-            <CameraMonitor lineId={productionData.line_id} />
-            <CameraMonitor lineId={productionData.line_id} />
-          </div>
-        }
+      <div className="w-full md:w-1/4 flex flex-col overflow-hidden">
+        <div className="grid grid-rows-3 gap-4 h-full overflow-y-auto">
+          <CameraMonitor lineId={productionData?.line_id ?? ''} />
+          <CameraMonitor lineId={productionData?.line_id ?? ''} />
+          <CameraMonitor lineId={productionData?.line_id ?? ''} />
+          <CameraMonitor lineId={productionData?.line_id ?? ''} />
+        </div>
       </div>
     </div>
   )

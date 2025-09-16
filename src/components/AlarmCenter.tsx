@@ -491,14 +491,16 @@ export default function AlarmCenter() {
 
       {/* 分页组件 */}
       {totalAlarms > 0 && (
-        <DataPagination
-          currentPage={currentPage}
-          totalPages={paginationInfo.totalPages}
-          pageSize={pageSize}
-          totalItems={totalAlarms}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-        />
+        <div className="flex justify-center">
+          <DataPagination
+            currentPage={currentPage}
+            totalPages={paginationInfo.totalPages}
+            pageSize={pageSize}
+            totalItems={totalAlarms}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
       )}
 
       {/* 空状态提示 */}
