@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { ChartCard } from "./ui/chart-card";
 import { Button } from "./ui/button";
-import { Video, VideoOff, Camera, Settings, AlertCircle, Maximize2, Minimize2 } from "lucide-react";
+import { Video, VideoOff, Camera, Settings, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 
 interface CameraMonitorProps {
@@ -22,7 +22,6 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // 获取可用的摄像头设备
   const getCameraDevices = useCallback(async () => {
@@ -130,64 +129,6 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
     }
   }, [isActive, startCamera, stopCamera]);
 
-  // 切换全屏状态
-  const toggleFullscreen = useCallback(() => {
-    if (!videoRef.current) return;
-
-    if (!isFullscreen) {
-      // 进入全屏
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen();
-      } else if ((videoRef.current as any).webkitRequestFullscreen) {
-        (videoRef.current as any).webkitRequestFullscreen();
-      } else if ((videoRef.current as any).mozRequestFullScreen) {
-        (videoRef.current as any).mozRequestFullScreen();
-      } else if ((videoRef.current as any).msRequestFullscreen) {
-        (videoRef.current as any).msRequestFullscreen();
-      }
-      setIsFullscreen(true);
-    } else {
-      // 退出全屏
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).mozCancelFullScreen) {
-        (document as any).mozCancelFullScreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
-      }
-      setIsFullscreen(false);
-    }
-  }, [isFullscreen]);
-
-  // 监听全屏状态变化
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isFullscreen) {
-        toggleFullscreen();
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isFullscreen, toggleFullscreen]);
-
   // 初始化摄像头权限
   const initializeCameraPermission = useCallback(async () => {
     try {
@@ -221,16 +162,15 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
   }, [stopCamera]);
 
   return (
-    <Card className={`bg-gray-800 border border-gray-700 ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-bold text-blue-200 flex items-center">
-          <Camera className="mr-2" size={20} strokeWidth={1.5} />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className={className}>
+      <ChartCard
+        title={title}
+        subtitle="实时摄像头监控和控制"
+        icon={Camera}
+        iconColor="text-blue-500"
+      >
         {/* 设备选择 */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mb-4">
           <Settings className="text-gray-400" size={16} />
           <select
             value={selectedDevice}
@@ -264,7 +204,7 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
 
         {/* 错误提示 */}
         {error && (
-          <Alert className="bg-red-900/30 border-red-700">
+          <Alert className="bg-red-900/30 border-red-700 mb-4">
             <AlertCircle className="h-4 w-4 text-red-400" />
             <AlertDescription className="text-red-200">{error}</AlertDescription>
           </Alert>
@@ -298,30 +238,7 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
           )}
 
           {/* 控制按钮 */}
-          <div className="absolute bottom-2 right-2 flex space-x-2">
-            {/* 全屏按钮 */}
-            {isActive && (
-              <Button
-                onClick={toggleFullscreen}
-                disabled={isLoading}
-                variant="outline"
-                size="sm"
-                className="bg-black/50 hover:bg-black/70 text-white border-white/20"
-              >
-                {isFullscreen ? (
-                  <>
-                    <Minimize2 className="mr-1" size={16} />
-                    退出全屏
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="mr-1" size={16} />
-                    全屏
-                  </>
-                )}
-              </Button>
-            )}
-            
+          <div className="absolute bottom-2 right-2">
             {/* 摄像头控制按钮 */}
             <Button
               onClick={toggleCamera}
@@ -346,17 +263,11 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
         </div>
 
         {/* 调试信息 */}
-        <div className="text-xs text-gray-500 space-y-1">
+        <div className="text-xs text-gray-500 space-y-1 mt-4">
           <div className="flex justify-between">
             <span>状态: {isActive ? '运行中' : '已停止'}</span>
             <span>设备: {devices.length} 个可用</span>
           </div>
-          {isActive && (
-            <div className="flex justify-between">
-              <span>全屏: {isFullscreen ? '是' : '否'}</span>
-              <span>快捷键: ESC退出全屏</span>
-            </div>
-          )}
           {devices.length === 0 && (
             <div className="text-yellow-400">
               💡 提示: 如果未检测到设备，请尝试：
@@ -368,9 +279,9 @@ const CameraMonitor: React.FC<CameraMonitorProps> = ({
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </ChartCard>
+    </div>
   );
 };
 
-export default CameraMonitor; 
+export default CameraMonitor;

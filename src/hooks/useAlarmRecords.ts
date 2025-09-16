@@ -20,7 +20,7 @@ export const alarmRecordKeys = {
 } as const
 
 // 获取报警记录列表（支持分页和过滤）
-export const useAlarmRecordsList = (filters: AlarmRecordFilter) => {
+export const useAlarmRecordsList = (filters: AlarmRecordFilter, refetchInterval?: number) => {
   return useQuery({
     queryKey: [alarmRecordKeys.list(filters),filters],
     queryFn: () => getAlarmRecordsList(filters),
@@ -28,6 +28,7 @@ export const useAlarmRecordsList = (filters: AlarmRecordFilter) => {
     gcTime: 5 * 60 * 1000,    // 5分钟
     refetchIntervalInBackground: false, // 即使页面不在前台也继续刷新
     refetchOnWindowFocus: true, // 窗口获得焦点时刷新
+    refetchInterval: refetchInterval ?? false
   })
 }
 

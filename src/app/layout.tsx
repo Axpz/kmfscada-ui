@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono as JetBrainsMono } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { AuthProvider } from '@/contexts'
-import { QueryProvider, ThemeProvider, RealtimeProvider } from '@/providers'
+import { QueryProvider, ThemeProvider } from '@/providers'
 import { Toaster } from 'sonner'
 import './globals.css'
 

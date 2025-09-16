@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginRecord } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { DateRange } from 'react-day-picker';
+import { DateRangePicker, DateRange } from "@/components/ui/date-range-picker";
 
 interface LoginRecordsProps {
   records: LoginRecord[];

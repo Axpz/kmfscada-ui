@@ -22,7 +22,7 @@ export function AlarmNotification() {
   const [open, setOpen] = React.useState(false)
   
   // 获取未确认的告警
-  const { data: unacknowledgedAlarms, isLoading } = useAlarmRecordsList({is_acknowledged: false});
+  const { data: unacknowledgedAlarms, isLoading } = useAlarmRecordsList({is_acknowledged: false}, 5000);
 
   const unacknowledgedAlarmsCount = unacknowledgedAlarms?.total ?? 0
 

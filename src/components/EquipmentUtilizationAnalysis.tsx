@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useProductionData } from '@/hooks/useApi'
 import { useQueries } from '@tanstack/react-query'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
@@ -11,8 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { addDays, format } from 'date-fns'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import { DateRange } from 'react-day-picker'
+import { DateRangePicker, DateRange } from '@/components/ui/date-range-picker'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import {
   PieChart as RechartsPieChart,
@@ -146,15 +144,17 @@ const UtilizationPieChart = () => {
     >
       <div className="space-y-6">
         {/* 控制面板 */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg border">
-          <div className="flex flex-wrap items-center gap-3 min-w-0">
-            {/* 生产线多选器 */}
+        <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/50 rounded-lg border border-border/50 shadow-sm">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+            {/* 生产线选择 */}
             <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+              <Label className="text-sm font-medium text-foreground whitespace-nowrap">
                 生产线
               </Label>
               {isLoadingLines ? (
-                <LoadingSpinner />
+                <div className="flex items-center justify-center h-10 w-48 bg-muted/50 rounded-md">
+                  <LoadingSpinner />
+                </div>
               ) : (
                 <MultiSelect
                   options={productionLineOptions}
@@ -168,9 +168,9 @@ const UtilizationPieChart = () => {
               )}
             </div>
 
-            {/* 时间范围选择器 */}
+            {/* 时间范围选择 */}
             <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+              <Label className="text-sm font-medium text-foreground whitespace-nowrap">
                 时间范围
               </Label>
               <DateRangePicker
@@ -179,29 +179,22 @@ const UtilizationPieChart = () => {
                 className="w-64"
               />
             </div>
-          </div>
 
-          {/* 图例 */}
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                状态图例
-              </Label>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                  <div key={status} className="flex items-center gap-1.5">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-sm whitespace-nowrap">
-                      {status === 'production' && '生产中'}
-                      {status === 'idle' && '空闲中'}
-                      {status === 'offline' && '离线中'}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {/* 状态图例 */}
+            <div className="flex items-center gap-3 ml-auto">
+              {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                <div key={status} className="flex items-center gap-1.5 px-2 py-1 bg-background/60 rounded-md border border-border/30">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-xs font-medium whitespace-nowrap">
+                    {status === 'production' && '生产中'}
+                    {status === 'idle' && '空闲中'}
+                    {status === 'offline' && '离线中'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

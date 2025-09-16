@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Eye, TrendingUp, Camera, Cpu, History, AlertTriangle, Download, Users, Factory, Shield } from 'lucide-react'
+import { Eye, TrendingUp, Cpu, History, AlertTriangle, Download, Users, Factory, Shield, Cctv } from 'lucide-react'
 import { Role } from '@/types'
 
 interface TabItem {
@@ -62,7 +62,7 @@ export default function MobileBottomTabs({ items, className }: MobileBottomTabsP
 export const visualizationTabs: TabItem[] = [
   { href: '/visualization', label: '数据概览', icon: Eye },
   { href: '/visualization/analysis', label: '统计分析', icon: TrendingUp },
-  { href: '/visualization/cameras', label: '摄像头', icon: Camera },
+  { href: '/visualization/cameras', label: '监控', icon: Cctv },
 ]
 
 // 统计分析子页面标签

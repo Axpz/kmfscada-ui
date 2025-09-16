@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { OperationLog } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { DateRange } from 'react-day-picker';
+import { DateRangePicker, DateRange } from "@/components/ui/date-range-picker";
 import { Badge } from "@/components/ui/badge";
+import { addDays } from 'date-fns';
 
 interface OperationLogsProps {
   logs: OperationLog[];
@@ -13,7 +13,7 @@ interface OperationLogsProps {
 export default function OperationLogs({ logs }: OperationLogsProps) {
   const [filteredLogs, setFilteredLogs] = useState<OperationLog[]>(logs);
   const [operationType, setOperationType] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
 
   useEffect(() => {
     let newFilteredLogs = logs;

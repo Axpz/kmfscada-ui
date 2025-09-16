@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { useProductionLines } from '@/hooks/useProductionLines'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useAvailableProductionLines } from '@/hooks/useProductionLines'
 import { ProductionLineData, ChartDataPoint } from '@/types'
 import {
   Card,
@@ -123,10 +123,10 @@ const TemperaturePanel = React.memo(({ realTimeData, chartData }: { realTimeData
           温度 / 电流
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pb-0">
+      <CardContent className="space-y-4 pb-0 text-sm">
         {/* 实时温度数值 */}
         <div className="grid grid-cols-4 gap-4">
-          <div className="text-center p-2 bg-muted/30 rounded">
+          <div className="text-center text-sm p-2 bg-muted/30 rounded">
             <div><SensorValueView sensor={realTimeData.temp_body_zone1} unit=" °C" className='text-blue-500'/></div>
             <div><SensorValueView sensor={realTimeData.current_body_zone1} unit=" A" className='text-blue-500'/></div>
             <div className="text-xs text-muted-foreground">机身1</div>
@@ -525,7 +525,7 @@ const MotorPanel = React.memo(({ realTimeData }: { realTimeData: ProductionLineD
         tractionSpeed={latest.motor_traction_speed}
         spindleCurrent={latest.motor_current}
         vacuumSpeed={latest.motor_vacuum_speed}
-        className="justify-items-center"
+        className="justify-items-center text-sm"
       />
     </div>
   )
@@ -545,7 +545,7 @@ const WinderMotorPanel = React.memo(({ realTimeData }: { realTimeData: Productio
         winderTubeSpeed={latest.winder_tube_speed}
         winderLayerCount={latest.winder_layer_count}
         winderTubeCount={latest.winder_tube_count}
-        className="justify-items-center"
+        className="justify-items-center text-sm"
       />
     </div>
   )
@@ -971,7 +971,7 @@ export default function Dashboard() {
     chartDataArray: wsChartDataArray, 
   } = useWebSocket(selectedLineId, 'production_data')
 
-  const { data: productionLines } = useProductionLines()
+  const { data: productionLines } = useAvailableProductionLines()
   useEffect(() => {
     if (productionLines?.items) {
       const lineIds = productionLines.items.map((line) => line.name)

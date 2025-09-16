@@ -194,7 +194,7 @@ const NormalDistributionAnalysis = ({
           results.push({
             lineId,
             seriesKey,
-            seriesName: `生产线${lineId} - ${seriesConfig.name}`,
+            seriesName: `${lineId} - ${seriesConfig.name}`,
             values,
             mean: meanValue,
             stdDev,
@@ -224,7 +224,7 @@ const NormalDistributionAnalysis = ({
       {distributionData.map((item, index) => (
         <Card key={`${item.lineId}-${item.seriesKey}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-base flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center justify-between">
               <span>{item.seriesName}</span>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span>样本数: {item.values.length}</span>
@@ -242,7 +242,7 @@ const NormalDistributionAnalysis = ({
 
             {/* 统计信息 - 横排显示，居中对齐 */}
             <div className="mt-4 flex justify-center">
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 max-w-4xl">
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 max-w-4xl text-sm">
                 <div className="text-center">
                   <div className="text-muted-foreground text-sm">最小值</div>
                   <div className="font-medium">{min(item.values).toFixed(2)}</div>
@@ -457,16 +457,17 @@ const HistoricalChart = ({
       {/* 使用flex布局让图表区域自适应高度 */}
       <div className={`flex flex-col ${isFullscreen ? 'h-full' : 'min-h-[500px]'}`}>
         <div className="flex-shrink-0 mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg border">
-            {/* 左侧：选择器组 */}
-            <div className="flex flex-wrap items-center gap-3 min-w-0">
-              {/* 生产线多选器 */}
+          <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/50 rounded-lg border border-border/50 shadow-sm">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+              {/* 生产线选择 */}
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                <Label className="text-sm font-medium text-foreground whitespace-nowrap">
                   生产线
                 </Label>
                 {isLoadingLines ? (
-                  <LoadingSpinner />
+                  <div className="flex items-center justify-center h-9 w-48 bg-muted/50 rounded-md">
+                    <LoadingSpinner />
+                  </div>
                 ) : (
                   <MultiSelect
                     options={productionLineOptions}
@@ -480,9 +481,9 @@ const HistoricalChart = ({
                 )}
               </div>
 
-              {/* 图表类型选择器 */}
+              {/* 图表类型选择 */}
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                <Label className="text-sm font-medium text-foreground whitespace-nowrap">
                   类型
                 </Label>
                 <Select value={chartCategory} onValueChange={(v) => setChartCategory(v as SensorDataType)}>
@@ -494,47 +495,45 @@ const HistoricalChart = ({
                     <SelectItem value="current">电流传感器</SelectItem>
                     <SelectItem value="speed">速度传感器</SelectItem>
                     <SelectItem value="diameter">直径传感器</SelectItem>
-                    {/* <SelectItem value="production">生产数据</SelectItem> */}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                数据系列
-              </Label>
-              <MultiSelect
-                options={getSeriesOptions(chartCategory)}
-                value={visibleSeries}
-                onValueChange={setVisibleSeries}
-                placeholder="选择数据系列"
-                className="w-64"
-                maxDisplay={1}
-              />
-            </div>
-
-            {/* 日期范围选择器 */}
-            <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                时间
-              </Label>
-              <DateRangePicker
-                value={dateRange}
-                onChange={setDateRange}
-              />
-            </div>
-
-            {/* 右侧：数据系列多选和正态分布按钮 */}
-            <div className="flex-1 min-w-0">
+              {/* 数据系列选择 */}
               <div className="flex items-center gap-2">
-                {/* 正态分布切换按钮 */}
+                <Label className="text-sm font-medium text-foreground whitespace-nowrap">
+                  数据系列
+                </Label>
+                <MultiSelect
+                  options={getSeriesOptions(chartCategory)}
+                  value={visibleSeries}
+                  onValueChange={setVisibleSeries}
+                  placeholder="选择数据系列"
+                  className="w-64"
+                  maxDisplay={1}
+                />
+              </div>
+
+              {/* 时间范围选择 */}
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium text-foreground whitespace-nowrap">
+                  时间
+                </Label>
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={setDateRange}
+                  className="w-64"
+                />
+              </div>
+
+              {/* 正态分布按钮 */}
+              <div className="flex items-center gap-2 ml-auto">
                 <Button
                   variant={showNormalDistribution ? "default" : "outline"}
                   size="sm"
                   onClick={() => setShowNormalDistribution(!showNormalDistribution)}
                   disabled={!allHistoricalData.length || !visibleSeries.length}
-                  className="h-8"
+                  className="h-9"
                 >
                   <BarChart3 className="h-3 w-3 mr-1" />
                   {showNormalDistribution ? '隐藏分布' : '正态分布'}

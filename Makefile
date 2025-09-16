@@ -20,16 +20,9 @@ clean: ## Clean build artifacts and cache
 	rm -rf node_modules/.cache
 	rm -f tsconfig.tsbuildinfo
 
-clear-cache: ## Clear all cache and reinstall dependencies
-	rm -rf .next
-	rm -rf node_modules
-	pnpm install
-	@echo "Cache cleared and dependencies reinstalled. Run 'make dev' to start the server."
-
 # Docker commands
-docker: ## Build Docker image for linux/amd64
+docker:
 	docker build -t kmfscada-ui:latest . 
 
-# Docker commands
-docker-build: ## Build Docker image for linux/amd64
+dockerx: ## Build Docker image for linux/amd64 (alias)
 	docker build --platform linux/amd64 -t kmfscada-ui-linux-amd64:latest . 

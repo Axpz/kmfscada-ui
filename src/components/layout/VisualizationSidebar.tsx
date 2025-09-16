@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
-import { Eye, BarChart3, TrendingUp, Camera, Cpu, AlertTriangle, Package, ChevronDown, ChevronRight } from 'lucide-react'
+import { Eye, BarChart3, TrendingUp, Camera, Cpu, AlertTriangle, Package, ChevronDown, ChevronRight, Cctv } from 'lucide-react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Role } from '@/types'
 
@@ -78,7 +78,7 @@ const visualizationNavItems: NavItem[] = [
   {
     href: '/visualization/cameras',
     label: '摄像头监控',
-    icon: Camera,
+    icon: Cctv,
     description: '实时摄像头数据流监控和分析',
     requiredRole: ['super_admin', 'admin', 'user'] as Role[]
   }

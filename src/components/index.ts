@@ -5,8 +5,6 @@ export { default as Dashboard } from './Dashboard'
 export { default as LandingPage } from './LandingPage'
 export { default as LoginForm } from './LoginForm'
 export { default as LoadingSpinner } from './LoadingSpinner'
-export { default as ProductionForm } from './ProductionForm'
-export { default as ScadaWorkshopDashboard } from './ScadaWorkshopDashboard'
 export { default as UserManagement } from './UserManagement'
 export { default as VisualizationCenter } from './VisualizationCenter'
 

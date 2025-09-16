@@ -8,8 +8,8 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   
-  // 输出配置 - 支持 Docker 部署 (在开发环境中暂时禁用)
-  // output: 'standalone',
+  // 输出配置 - 支持 Docker 部署
+  output: 'standalone',
   
   // 服务器外部包配置
   serverExternalPackages: ['@supabase/supabase-js'],
