@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { addDays, format } from 'date-fns'
+import { addDays, format, subHours } from 'date-fns'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import {
   LineChart as RechartsLineChart,
@@ -354,7 +354,7 @@ const HistoricalChart = ({
   onSelectedLineIdsChange: (ids: string[]) => void
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
-    from: addDays(new Date(), -1),
+    from: subHours(new Date(), 1),
     to: new Date()
   }))
   const [visibleSeries, setVisibleSeries] = useState<string[]>([])
@@ -517,7 +517,7 @@ const HistoricalChart = ({
               {/* 时间范围选择 */}
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium text-foreground whitespace-nowrap">
-                  时间
+                  {/* 时间 */}
                 </Label>
                 <DateRangePicker
                   value={dateRange}

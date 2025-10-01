@@ -96,7 +96,7 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
               </div>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex flex-col gap-6 text-sm">
                 <div className="flex flex-row gap-3">
                   <div className="mb-1">生产批号:</div>
                   <div className=" text-green-500">{line?.batch_product_number || '-'}</div>

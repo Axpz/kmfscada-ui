@@ -57,8 +57,12 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         
         <div className="relative z-10 px-6 text-center w-full">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent animate-fadeInUp leading-tight">
-              智能数据洞察，驱动未来生产力
+            <h1 className="text-4xl block md:hidden font-extrabold mb-8 bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent animate-fadeInUp leading-tight">
+              <div>智能数据洞察驱动</div>
+              <div>未来生产力</div>
+            </h1>
+            <h1 className="hidden md:block md:text-6xl lg:text-7xl font-extrabold mb-8 bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent animate-fadeInUp leading-tight">
+              <div>智能数据洞察，驱动未来生产力</div>
             </h1>
             <p className="hidden md:block text-xl md:text-2xl lg:text-3xl mb-16 max-w-4xl mx-auto text-muted-foreground animate-fadeInUp delay-200 leading-relaxed">
               通过实时可视化和智能分析，赋能您的业务决策，提升生产效率。

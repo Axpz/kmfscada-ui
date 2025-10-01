@@ -31,18 +31,18 @@ export const metadata: Metadata = {
     title: 'KFM·Scada',
     description: 'A modern, real-time industrial monitoring and data acquisition system.',
     siteName: 'KFM·Scada',
-    images: [{ url: '/kfm-scada-logo-simple.svg' }],
+    images: [{ url: '/komifu-12.jpg' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'KFM·Scada',
     description: 'A modern, real-time industrial monitoring and data acquisition system.',
-    images: ['/kfm-scada-logo-simple.svg'],
+    images: ['/komifu-12.jpg'],
   },
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/apple-touch-icon.svg',
+    icon: '/komifu-12.jpg',
+    shortcut: '/komifu-12.jpg',
+    apple: '/komifu-12.jpg',
   },
   manifest: '/site.webmanifest',
 }

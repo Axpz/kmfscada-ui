@@ -101,10 +101,10 @@ export default function AlarmCenter() {
 
     // 日期范围过滤
     if (dateRange?.from) {
-      filter.start_time = dayjs(dateRange.from).format('YYYY-MM-DD HH:mm:ss')
+      filter.start_time = dateRange.from.toISOString()
     }
     if (dateRange?.to) {
-      filter.end_time = dayjs(dateRange.to).format('YYYY-MM-DD HH:mm:ss')
+      filter.end_time = dateRange.to.toISOString()
     }
 
     return filter

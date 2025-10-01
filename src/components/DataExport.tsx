@@ -201,8 +201,8 @@ export default function DataExport() {
 
         const filters: SensorDataExportFilter = {
             line_ids: selectedLines.join(','),
-            start_time: format(dateRange.from, 'yyyy-MM-dd'),
-            end_time: format(dateRange.to, 'yyyy-MM-dd'),
+            start_time: dateRange.from.toISOString(),
+            end_time: dateRange.to.toISOString(),
             parameter_names: selectedFields.join(','),
         }
 

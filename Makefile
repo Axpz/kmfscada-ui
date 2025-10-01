@@ -22,7 +22,7 @@ clean: ## Clean build artifacts and cache
 
 # Docker commands
 docker:
-	docker build -t kmfscada-ui:latest . 
+	docker build -t kmfscada-frontend:latest . 
 
 dockerx: ## Build Docker image for linux/amd64 (alias)
-	docker build --platform linux/amd64 -t kmfscada-ui-linux-amd64:latest . 
+	docker build --platform linux/amd64 -t kmfscada-frontend-linux-amd64:latest . 

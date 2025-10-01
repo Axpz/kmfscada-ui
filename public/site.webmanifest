@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/kfm-icon.svg",
+      "src": "/kfm-icon.jpg",
       "sizes": "48x48",
-      "type": "image/svg+xml",
+      "type": "image/jpg",
       "purpose": "any maskable"
     },
     {
-      "src": "/kfm-scada-logo-simple.svg",
+      "src": "/kfm-icon.jpg",
       "sizes": "200x50",
-      "type": "image/svg+xml",
+      "type": "image/jpg",
       "purpose": "any"
     }
   ],

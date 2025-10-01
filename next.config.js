@@ -48,6 +48,21 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
 
+  // 添加 WASM 支持的 headers
+  async headers() {
+    return [
+      {
+        source: '/:path*.wasm',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/wasm',
+          },
+        ],
+      },
+    ]
+  },
+
   // 添加 webpack 配置以提高稳定性
   webpack: (config, { isServer }) => {
     // 添加错误处理
@@ -61,6 +76,12 @@ const nextConfig = {
       fs: false,
       net: false,
       tls: false,
+    }
+
+    // 添加 WASM 支持
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
     }
     
     return config

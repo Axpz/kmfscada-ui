@@ -24,10 +24,10 @@ export function Logo({ className, size = "md", variant = "icon" }: LogoProps) {
     return (
       <div className={cn("flex items-center", className)}>
         <Image
-          src="/kfm-scada-logo-simple.svg"
+          src="/komifu-21.jpg"
           alt="KFM·Scada Industrial Control"
-          width={200}
-          height={50}
+          width={148}
+          height={148}
           className={cn(fullSizeClasses[size])}
           priority
         />
@@ -35,13 +35,15 @@ export function Logo({ className, size = "md", variant = "icon" }: LogoProps) {
     )
   }
 
+  sizeClasses[size] = "h-124 w-124"
+
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <Image
-        src="/kfm-icon.svg"
+        src="/komifu-11.jpg"
         alt="KFM·Scada"
-        width={48}
-        height={48}
+        width={124}
+        height={124}
         className={cn(sizeClasses[size])}
         priority
       />

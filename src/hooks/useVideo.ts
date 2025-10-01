@@ -28,7 +28,7 @@ export const useEzvizToken = () => {
 /**
  * 获取萤石云设备播放地址列表
  */
-export const useVideoStreams = (filters: VideoStreamFilter = {}) => {
+export const useVideoStreams = (filters: VideoStreamFilter = {protocol: 1}) => {
   return useQuery({
     queryKey: videoKeys.streamsList(filters),
     queryFn: () => getVideoStreams(filters),

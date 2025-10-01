@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { wsManager, ConnectionStatus, WebSocketMessage } from '@/lib/websocket/WebSocketManager';
 import { Queue } from 'mnemonist';
-import type { ProductionLineData, ChartDataPoint } from '@/types';
+import type { ProductionLineData, ChartDataPoint, SensorValue } from '@/types';
 
 // 简单的节流函数：delay 内只执行一次
 function throttle(func: Function, delay: number) {
@@ -22,6 +22,7 @@ interface WebSocketState {
   realtimeData: ProductionLineData | null;
   realtimeDataMap: Map<string, ProductionLineData | null>;
   chartDataArray:ChartDataPoint[]; 
+  fluoride: SensorValue | undefined;
 }
 
 export function useWebSocket(
@@ -32,6 +33,7 @@ export function useWebSocket(
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [realtimeData, setRealtimeData] = useState<ProductionLineData | null>(null);
   const [chartDataArray, setChartDataArray] = useState<ChartDataPoint[]>([]);
+  const [fluoride, setFluoride] = useState<SensorValue>();
 
   // 创建节流版本的更新函数
   const throttledSetRealtimeData = useCallback(
@@ -60,6 +62,13 @@ export function useWebSocket(
       if (message && message.data) {
         try {
           const { data } = message;
+          
+          const { fluoride_concentration } = data
+          if (fluoride_concentration !== undefined) {
+            setFluoride(fluoride_concentration)
+            return
+          }
+          
           const { line_id: lineId } = data;
           
           realtimeDataMapRef.current.set(lineId, data);
@@ -139,5 +148,6 @@ export function useWebSocket(
     realtimeDataMap: realtimeDataMapRef.current,
     isConnected: status === 'connected',
     chartDataArray,
+    fluoride,
   };
 }

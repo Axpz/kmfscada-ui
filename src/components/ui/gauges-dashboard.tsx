@@ -24,40 +24,40 @@ interface GaugesDashboardProps {
 const gaugeConfigs: Record<string, GaugeConfig> = {
   screwSpeed: {
     title: '主机当前速度',
-    unit: 'HZ',
-    max: 200,
+    unit: ' HZ',
+    max: 100,
     min: 0,
     color: '#3b82f6', // Blue
     decimalPlaces: 2
   },
   motorTorque: {
     title: '主机当前扭力',
-    unit: '%',
-    max: 500,
+    unit: ' %',
+    max: 100,
     min: 0,
     color: '#a855f7',
-    decimalPlaces: 2
+    decimalPlaces: 1
   },
   tractionSpeed: {
     title: '牵引当前速度',
-    unit: 'RMP',
-    max: 50,
+    unit: ' RMP',
+    max: 200,
     min: 0,
     color: '#06b6d4',
-    decimalPlaces: 2
+    decimalPlaces: 0
   },
   vacuumSpeed: {
     title: '真空当前速度',
-    unit: 'HZ',
-    max: 50,
+    unit: ' HZ',
+    max: 100,
     min: 0,
     color: '#2dd4bf',
     decimalPlaces: 2
   },
   spindleCurrent: {
     title: '主机当前电流',
-    unit: 'A',
-    max: 100,
+    unit: ' A',
+    max: 10,
     min: 0,
     color: '#7c3aed', // Green
     decimalPlaces: 2
@@ -65,40 +65,40 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
   
   winderSpeed: {
     title: '当前收卷速度',
-    unit: 'HZ',
-    max: 50,
+    unit: ' HZ',
+    max: 200,
     min: 0,
     color: '#3b82f6', // Purple
     decimalPlaces: 2
   },
   winderTorque: {
     title: '当前收卷扭力',
-    unit: '%',
-    max: 500,
+    unit: ' %',
+    max: 100,
     min: 0,
     color: '#a855f7', 
     decimalPlaces: 2
   },
   winderTubeSpeed: {
     title: '当前排管速度',
-    unit: 'RMP',
-    max: 50,
+    unit: ' RMP',
+    max: 100,
     min: 0,
     color: '#06b6d4', 
     decimalPlaces: 2
   },
   winderLayerCount: {
     title: '当前排管层数',
-    unit: '层',
-    max: 50,
+    unit: ' 层',
+    max: 100,
     min: 0,
     color: '#2dd4bf', // Purple
     decimalPlaces: 2
   },
   winderTubeCount: {
     title: '当前排管根数',
-    unit: 'P',
-    max: 50,
+    unit: ' P',
+    max: 100,
     min: 0,
     color: '#7c3aed', // Purple
     decimalPlaces: 2

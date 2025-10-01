@@ -13,7 +13,7 @@ interface SensorValueViewProps {
 export const SensorValueView: React.FC<SensorValueViewProps> = ({
   sensor,
   unit = '',
-  precision = 2,
+  precision = 0,
   className = 'text-green-500',
   fallbackText = '-'
 }) => {
@@ -32,8 +32,11 @@ export const SensorValueView: React.FC<SensorValueViewProps> = ({
     ? 'text-red-500' 
     : className;
 
-  // 构建显示的值
-  const displayValue = sensor.value.toFixed(precision);
+  let displayValue = sensor.value.toString();//.toFixed(precision);
+  if (precision !== 0)
+  {
+    displayValue = sensor.value.toFixed(precision)
+  }
   const displayText = unit ? `${displayValue}${unit}` : displayValue;
 
   // 构建 tooltip 内容

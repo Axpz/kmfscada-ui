@@ -272,7 +272,7 @@ export default function ProductionLineManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>生产线名称</TableHead>
+              <TableHead>生产线</TableHead>
               <TableHead>描述</TableHead>
               <TableHead>启用状态</TableHead>
               <TableHead className="text-right">操作</TableHead>
@@ -298,7 +298,7 @@ export default function ProductionLineManagement() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-0">
                     <Dialog open={isEditDialogOpen && selectedLine?.id === line.id} onOpenChange={(open) => {
                       if (!open) {
                         setSelectedLine(undefined);

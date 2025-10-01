@@ -12,11 +12,13 @@ import { apiClient } from './api-client'
 export interface EzvizStream {
   deviceSerial: string;
   channelNo: number;
+  name: string
   url: string;
   expireTime: string;
   id: string;
   protocol: number;
   quality: number;
+  accessToken: string;
 }
 
 /**
