@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useAvailableProductionLines } from "@/hooks/useProductionLines";
-import { ProductionLineData, ChartDataPoint } from "@/types";
+import { ProductionLineData, ChartDataPoint, SensorValue } from "@/types";
 import {
   Card,
   CardContent,
@@ -1019,6 +1019,7 @@ export default function Dashboard() {
   const [lineIds, setLineIds] = useState<string[]>([]);
   const [productionData, setProductionData] = useState<ProductionLineData | null>(null);
   const [chartDataArray, setChartDataArray] = useState<ChartDataPoint[]>([]);
+  const [isOffline, setIsOffline] = useState<boolean>(true);
 
   const {
     isConnected,
@@ -1039,7 +1040,48 @@ export default function Dashboard() {
   }, [productionLines]);
 
   useEffect(() => {
-    setProductionData(null);
+    const sensorValue: SensorValue = {
+      value: NaN,
+      alarm: false,
+      alarmCode: "",
+      alarmMessage: ""
+    };
+    setProductionData({
+      timestamp: "",
+      line_id: "",
+      component_id: "",
+      batch_product_number: "",
+      current_length: sensorValue,
+      target_length: sensorValue,
+      diameter: sensorValue,
+      fluoride_concentration: sensorValue,
+      temp_body_zone1: sensorValue,
+      temp_body_zone2: sensorValue,
+      temp_body_zone3: sensorValue,
+      temp_body_zone4: sensorValue,
+      temp_flange_zone1: sensorValue,
+      temp_flange_zone2: sensorValue,
+      temp_mold_zone1: sensorValue,
+      temp_mold_zone2: sensorValue,
+      current_body_zone1: sensorValue,
+      current_body_zone2: sensorValue,
+      current_body_zone3: sensorValue,
+      current_body_zone4: sensorValue,
+      current_flange_zone1: sensorValue,
+      current_flange_zone2: sensorValue,
+      current_mold_zone1: sensorValue,
+      current_mold_zone2: sensorValue,
+      motor_screw_speed: sensorValue,
+      motor_screw_torque: sensorValue,
+      motor_current: sensorValue,
+      motor_traction_speed: sensorValue,
+      motor_vacuum_speed: sensorValue,
+      winder_speed: sensorValue,
+      winder_torque: sensorValue,
+      winder_layer_count: sensorValue,
+      winder_tube_speed: sensorValue,
+      winder_tube_count: sensorValue,
+    });
     setChartDataArray([]);
   }, [selectedLineId]);
 
@@ -1047,6 +1089,11 @@ export default function Dashboard() {
     if (realtimeData) {
       setProductionData(realtimeData);
       setChartDataArray(wsChartDataArray);
+      if (realtimeData.timestamp === "") {
+        setIsOffline(true);
+      } else {
+        setIsOffline(false);
+      }
     }
   }, [realtimeData, wsChartDataArray]);
 
@@ -1169,29 +1216,31 @@ export default function Dashboard() {
               <Ruler className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {productionData?.current_length.value && (
-                <div className="text-md font-bold text-blue-600">
-                  <span className="text-green-600">
-                    {productionData?.current_length.value.toFixed(0)}
-                  </span>
-                  /
-                  <span className="text-blue-600">
-                    {productionData?.target_length.value.toFixed(0)}
-                  </span>
-                </div>
-              )}
+              <div className="text-md font-bold text-blue-600">
+                <span className="text-green-600">
+                  {isNaN(productionData?.current_length.value ?? NaN) ? '- ' : productionData?.current_length.value.toFixed(0)}
+                </span>
+                /
+                <span className="text-blue-600">
+                  {isNaN(productionData?.target_length.value ?? NaN) ? ' -' : productionData?.target_length.value.toFixed(0)}
+                </span>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-md font-medium">运行状态</CardTitle>
-              <Cog
-                className={`h-4 w-4 ${(productionData?.motor_screw_speed.value ?? 0) > 0.1
-                  ? "text-green-500 animate-[spin_3s_linear_infinite]"
-                  : "text-gray-500"
-                  }`}
-              />
+              {isOffline ? (
+                <WifiOff className="h-4 w-4 text-red-500" />
+              ) : (
+                <Cog
+                  className={`h-4 w-4 ${(productionData?.motor_screw_speed.value ?? 0) > 0.1
+                    ? "text-green-500 animate-[spin_3s_linear_infinite]"
+                    : "text-gray-500"
+                    }`}
+                />
+              )}
             </CardHeader>
             <CardContent>
               <div
@@ -1200,7 +1249,7 @@ export default function Dashboard() {
                   : "text-gray-600"
                   }`}
               >
-                {getProductionStatus(productionData?.motor_screw_speed)}
+                {getProductionStatus(productionData?.timestamp === "" ? undefined : productionData?.motor_screw_speed)}
               </div>
             </CardContent>
           </Card>

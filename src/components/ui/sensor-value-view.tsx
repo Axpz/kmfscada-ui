@@ -18,10 +18,10 @@ export const SensorValueView: React.FC<SensorValueViewProps> = ({
   fallbackText = '-'
 }) => {
   // 处理空值情况
-  if (!sensor || sensor.value == null || sensor.value == undefined) {
+  if (!sensor || sensor.value == null || sensor.value == undefined || isNaN(sensor.value)) {
     return (
       <span>
-        {fallbackText}
+        {`${fallbackText || '-'} ${unit || ''}`}
       </span>
     );
   }
@@ -37,7 +37,7 @@ export const SensorValueView: React.FC<SensorValueViewProps> = ({
   {
     displayValue = sensor.value.toFixed(precision)
   }
-  const displayText = unit ? `${displayValue}${unit}` : displayValue;
+  const displayText = unit ? `${displayValue} ${unit}` : displayValue;
 
   // 构建 tooltip 内容
   const tooltipContent = isAlarm && sensor.alarmMessage 

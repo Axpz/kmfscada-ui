@@ -473,8 +473,8 @@ const HistoricalChart = ({
                     options={productionLineOptions}
                     value={selectedLineIds}
                     onValueChange={onSelectedLineIdsChange}
-                    placeholder="选择生产线"
-                    className="w-48"
+                    placeholder="选择"
+                    // className="w-48"
                     maxCount={3}
                     maxDisplay={1}
                   />
@@ -509,7 +509,7 @@ const HistoricalChart = ({
                   value={visibleSeries}
                   onValueChange={setVisibleSeries}
                   placeholder="选择数据系列"
-                  className="w-64"
+                  // className="w-64"
                   maxDisplay={1}
                 />
               </div>
