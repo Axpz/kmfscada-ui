@@ -184,7 +184,7 @@ export default function VisualizationSidebar({ className }: VisualizationSidebar
   }
 
   return (
-    <div className={cn("w-56 hidden md:flex md:flex-col", className)}>
+    <div className={cn("w-48 hidden md:flex md:flex-col", className)}>
       <nav className="flex-1 space-y-1 p-2">
         <div className="space-y-1">
           {filteredNavItems.map(item => renderNavItem(item))}

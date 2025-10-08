@@ -54,7 +54,7 @@ export default function ManagementSidebar({ className }: ManagementSidebarProps)
   })
 
   return (
-    <div className={cn("w-56 hidden md:flex md:flex-col", className)}>
+    <div className={cn("w-48 hidden md:flex md:flex-col", className)}>
 
       
       <nav className="flex-1 space-y-1 p-2">

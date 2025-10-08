@@ -112,7 +112,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden md:fixed md:inset-y-0 md:left-0 md:z-50 md:w-48 lg:w-56 xl:w-64 md:flex md:flex-col transition-transform duration-300 ease-in-out',
+          'hidden md:fixed md:inset-y-0 md:left-0 md:z-50 md:w-32 lg:w-48 md:flex md:flex-col transition-transform duration-300 ease-in-out',
           sidebarOpen ? 'md:translate-x-0' : 'md:-translate-x-full'
         )}
       >
@@ -139,17 +139,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300 ease-in-out",
-        sidebarOpen ? "md:ml-56" : "md:ml-0"
+        sidebarOpen ? "md:ml-64" : "md:ml-0"
       )}>
         <Header
           onMenuClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-auto">
-          <div className={cn(
-            "min-h-full p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out",
-            !sidebarOpen && "md:container md:mx-auto"
-          )}>
+          <div className="min-h-full p-4 md:p-6 lg:p-8 xl:p-12 2xl:p-16 transition-all duration-300 ease-in-out">
             {children}
           </div>
         </main>
