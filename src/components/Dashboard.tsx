@@ -82,7 +82,7 @@ const TemperaturePanel = React.memo(
     // 定义温度线的配置 - 使用 useMemo 避免重复创建
     const temperatureLines = useMemo(
       () => [
-        { key: "temp_body_zone1", color: "#3b82f6", name: "机身1" },
+        { key: "temp_body_zone1", color: "#3b82f6", name: "机筒1" },
         { key: "temp_body_zone2", color: "#60a5fa", name: "机身2" },
         { key: "temp_body_zone3", color: "#93c5fd", name: "机身3" },
         { key: "temp_body_zone4", color: "#bfdbfe", name: "机身4" },
@@ -156,7 +156,7 @@ const TemperaturePanel = React.memo(
                   className="text-blue-500"
                 />
               </div>
-              <div className="text-xs text-muted-foreground">机身1</div>
+              <div className="text-xs text-muted-foreground">机筒1</div>
             </div>
             <div className="text-center p-2 bg-muted/30 rounded">
               <div>
@@ -395,7 +395,7 @@ const CurrentPanel = React.memo(
                 unit="A"
                 className="text-blue-500"
               />
-              <div className="text-xs text-muted-foreground">机身1</div>
+              <div className="text-xs text-muted-foreground">机筒1</div>
             </div>
             <div className="text-center p-2 bg-muted/30 rounded">
               <SensorValueView
@@ -571,7 +571,7 @@ const WinderPanel = React.memo(
                 unit="A"
                 className="text-blue-500"
               />
-              <div className="text-xs text-muted-foreground">机身1</div>
+              <div className="text-xs text-muted-foreground">机筒1</div>
             </div>
             <div className="text-center p-2 bg-muted/30 rounded">
               <SensorValueView
@@ -1126,7 +1126,7 @@ export default function Dashboard() {
 
     const interval = setInterval(() => {
       setCurrentGroupIndex((prev) => (prev + 1) % videoGroups.length);
-    }, 10000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [videoGroups.length]);
@@ -1200,12 +1200,12 @@ export default function Dashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-md font-medium">物料批号</CardTitle>
+              <CardTitle className="text-md font-medium">物料编号</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-md font-bold text-blue-600 break-all">
-                {productionData?.batch_product_number}
+                {productionData?.batch_product_number?.substring(1, 5)}
               </div>
             </CardContent>
           </Card>

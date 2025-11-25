@@ -146,7 +146,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-auto">
-          <div className="min-h-full p-4 md:p-6 lg:p-8 xl:p-12 2xl:p-16 transition-all duration-300 ease-in-out">
+          <div className="min-h-full p-1 sm:p-2 md:p-6 lg:p-8 xl:p-12 2xl:p-16 transition-all duration-300 ease-in-out">
             {children}
           </div>
         </main>

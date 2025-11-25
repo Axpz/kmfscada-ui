@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface EZCameraPlayerProps {
   className?: string;
@@ -9,82 +9,80 @@ interface EZCameraPlayerProps {
   accessToken?: string;
 }
 
-export default function EZCameraPlayer({ className = "", devID = "", url = "", accessToken = "" }: EZCameraPlayerProps) {
-  const player = useRef<any>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  const initPlayer = useCallback(async () => {
-    if (typeof window === 'undefined') return;
-
-    const container = document.getElementById(devID);
-    if (!container) return;
-
-    try {
-      const EZUIKit = (await import("ezuikit-js")).default;
-
-      if (player.current) {
-        player.current.destroy();
-        player.current = null;
-      }
-
-      const containerRect = container.getBoundingClientRect();
-      const width = containerRect.width || container.offsetWidth || 400;
-      const height = containerRect.height || container.offsetHeight || 300;
-
-      player.current = new EZUIKit.EZUIKitPlayer({
-        id: devID,
-        url: url,
-        accessToken: accessToken,
-        width: width,
-        height: height,
-        template: "security",
-        audio: 0,
-      });
-
-    } catch (error) {
-      console.error('播放器初始化失败:', error);
-    }
-  }, [devID, url, accessToken]);
+export default function EZCameraPlayer({
+  className = "",
+  devID = "",
+  url = "",
+  accessToken = "",
+}: EZCameraPlayerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const hasPausedOnceRef = useRef(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (!containerRef.current || !url || !accessToken) return;
 
-  useEffect(() => {
-    if (!isClient) return;
+    let destroyed = false;
 
-    const timer = setTimeout(initPlayer, 500);
+    const loadPlayer = async () => {
+      try {
+        const EZUIKit = (await import("ezuikit-js")).default;
 
-    return () => {
-      clearTimeout(timer);
-      if (player.current) {
-        try {
-          player.current.destroy();
-          player.current = null;
-        } catch (error) {
-          console.error('销毁播放器失败:', error);
-        }
+        if (destroyed) return;
+
+        const container = containerRef.current!;
+        const { width, height } = container.getBoundingClientRect();
+
+        playerRef.current = new EZUIKit.EZUIKitPlayer({
+          id: container.id,
+          url,
+          accessToken,
+          width: width || 400,
+          height: height || 300,
+          template: "security",
+          audio: 0,
+          handleSuccess: async () => {
+            try {
+              if (!hasPausedOnceRef.current) {
+                try {
+                  await playerRef.current?.pause();
+                  hasPausedOnceRef.current = true;
+                } catch (e) {
+                  console.warn("首次停止播放失败:", e);
+                }
+              } else {
+                console.log("播放器再次加载，不再自动停止");
+              }
+            } catch (e) {
+              console.warn("停止播放失败:", e);
+            }
+          },
+        });
+      } catch (error) {
+        console.error("播放器初始化失败:", error);
       }
     };
-  }, [isClient, initPlayer]);
 
-  if (!isClient) {
-    return (
-      <div className={`relative w-full h-full bg-black rounded-lg overflow-hidden ${className}`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-            <p className="text-sm">加载播放器...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    loadPlayer();
+
+    return () => {
+      destroyed = true;
+      if (playerRef.current) {
+        try {
+          playerRef.current.stop();
+        } catch (e) {
+          console.error("销毁播放器失败:", e);
+        }
+        playerRef.current = null;
+      }
+    };
+  }, [url, accessToken]);
 
   return (
     <div className={`relative w-full h-full bg-black rounded-lg overflow-hidden ${className}`}>
       <div
         id={devID}
+        ref={containerRef}
         className="absolute inset-0 w-full h-full"
       />
     </div>

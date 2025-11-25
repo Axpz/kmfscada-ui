@@ -12,15 +12,15 @@ const EquipmentUtilizationPage = () => {
       description="分析设备运行状态，优化生产效率"
     >
       <Suspense fallback={<LoadingSpinner />}>
-        <div className="space-y-6">
+        {/* <div className="space-y-6"> */}
           {/* 页面头部 */}
-          <div>
+          {/* <div>
             <h2 className="text-lg font-semibold">设备利用率分析</h2>
-          </div>
+          </div> */}
 
           {/* 主要内容 */}
           <EquipmentUtilizationAnalysis />
-        </div>
+        {/* </div> */}
       </Suspense>
     </VisualizationLayout>
   );

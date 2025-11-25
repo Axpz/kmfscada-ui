@@ -12,18 +12,18 @@ const VisualizationAnalysisPage = () => {
       description="历史数据分析和趋势统计"
     >
       <Suspense fallback={<LoadingSpinner />}>
-        <div className="space-y-6">
+        {/* <div className="space-y-6"> */}
           {/* 页面头部 */}
-          <div>
+          {/* <div>
             <h2 className="text-lg font-semibold">统计分析</h2>
             <p className="text-sm text-muted-foreground">
               历史数据分析和趋势统计
             </p>
-          </div>
+          </div> */}
 
           {/* 主要内容 */}
           <VisualizationStatisticsAnalysis />
-        </div>
+        {/* </div> */}
       </Suspense>
     </VisualizationLayout>
   )

@@ -51,10 +51,7 @@ export default function AlarmCenter() {
   const [productionLineFilter, setProductionLineFilter] = useState<string>('')
   const [messageFilter, setMessageFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   
   // 使用分页 hook

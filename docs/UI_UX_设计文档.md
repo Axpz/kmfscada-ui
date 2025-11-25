@@ -749,7 +749,7 @@ const option = {
 ```tsx
 const temperatureLines = [
   // 机身温度 - 蓝色系
-  { key: '机身1', color: '#1e40af', name: '机身1' },
+  { key: '机筒1', color: '#1e40af', name: '机筒1' },
   { key: '机身2', color: '#3b82f6', name: '机身2' },
   { key: '机身3', color: '#60a5fa', name: '机身3' },
   { key: '机身4', color: '#93c5fd', name: '机身4' },
@@ -830,7 +830,7 @@ const TemperaturePanel = React.memo(({ realTimeData }: { realTimeData: RealTimeD
   const chartData = useMemo(() => {
     return realTimeData.map((point, index) => ({
       index,
-      机身1: point.机身1,
+      机筒1: point.机筒1,
       机身2: point.机身2,
       // ... 其他数据
     }))
@@ -838,7 +838,7 @@ const TemperaturePanel = React.memo(({ realTimeData }: { realTimeData: RealTimeD
 
   // 缓存温度线配置
   const temperatureLines = useMemo(() => [
-    { key: '机身1', color: '#1e40af', name: '机身1' },
+    { key: '机筒1', color: '#1e40af', name: '机筒1' },
     // ... 其他配置
   ], [])
 

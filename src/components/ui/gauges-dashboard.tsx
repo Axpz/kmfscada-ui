@@ -23,7 +23,7 @@ interface GaugesDashboardProps {
 // Configuration for each gauge
 const gaugeConfigs: Record<string, GaugeConfig> = {
   screwSpeed: {
-    title: '主机当前速度',
+    title: '主机速度',
     unit: ' HZ',
     max: 100,
     min: 0,
@@ -31,7 +31,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   motorTorque: {
-    title: '主机当前扭力',
+    title: '主机扭力',
     unit: ' %',
     max: 100,
     min: 0,
@@ -39,7 +39,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 1
   },
   tractionSpeed: {
-    title: '牵引当前速度',
+    title: '牵引速度',
     unit: ' RMP',
     max: 200,
     min: 0,
@@ -47,7 +47,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 0
   },
   vacuumSpeed: {
-    title: '真空当前速度',
+    title: '真空速度',
     unit: ' HZ',
     max: 100,
     min: 0,
@@ -55,7 +55,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   spindleCurrent: {
-    title: '主机当前电流',
+    title: '主机电流',
     unit: ' A',
     max: 10,
     min: 0,
@@ -64,7 +64,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
   },
   
   winderSpeed: {
-    title: '当前收卷速度',
+    title: '收卷速度',
     unit: ' HZ',
     max: 200,
     min: 0,
@@ -72,7 +72,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   winderTorque: {
-    title: '当前收卷扭力',
+    title: '收卷扭力',
     unit: ' %',
     max: 100,
     min: 0,
@@ -80,7 +80,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   winderTubeSpeed: {
-    title: '当前排管速度',
+    title: '排管速度',
     unit: ' RMP',
     max: 100,
     min: 0,
@@ -88,7 +88,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   winderLayerCount: {
-    title: '当前排管层数',
+    title: '排管层数',
     unit: ' 层',
     max: 100,
     min: 0,
@@ -96,7 +96,7 @@ const gaugeConfigs: Record<string, GaugeConfig> = {
     decimalPlaces: 2
   },
   winderTubeCount: {
-    title: '当前排管根数',
+    title: '排管根数',
     unit: ' P',
     max: 100,
     min: 0,

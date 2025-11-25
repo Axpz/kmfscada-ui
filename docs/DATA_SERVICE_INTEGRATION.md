@@ -38,7 +38,7 @@ function MyComponent() {
         <div>
           <p>螺杆转速: {latest.螺杆转速} RPM</p>
           <p>实时直径: {latest.实时直径} mm</p>
-          <p>机身温度1: {latest.机身1}°C</p>
+          <p>机身温度1: {latest.机筒1}°C</p>
         </div>
       )}
       
@@ -154,7 +154,7 @@ interface RealTimeDataPoint {
   production_line_id: string // 生产线ID
   
   // 温度数据
-  机身1: number
+  机筒1: number
   机身2: number
   机身3: number
   机身4: number
@@ -299,7 +299,7 @@ const TemperaturePanel = ({ realTimeData }: TemperaturePanelProps) => {
   const chartData = useMemo(() => {
     return realTimeData.map((point, index) => ({
       index,
-      机身1: point.机身1,
+      机筒1: point.机筒1,
       机身2: point.机身2,
       // ... 其他字段
     }))

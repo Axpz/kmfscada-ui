@@ -81,7 +81,7 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
   }
 
   return (
-    <div className="flex flex-col w-full space-y-3 md:space-y-6 px-2 md:px-0">
+    <div className="flex flex-col w-full gap-y-6 px-2 md:px-0">
       {/* 移动端：卡片式布局 */}
       <div className="block md:hidden space-y-3">
         {productionLinesWithData.map(({ lineId, data: line, hasData }) => (
@@ -268,57 +268,57 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
           </CardTitle>
         </CardHeader>
         <CardContent>
-        <div className="w-full overflow-x-auto">
-          <div className="min-w-max rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>生产线</TableHead>
-                  <TableHead>生产批号</TableHead>
-                  <TableHead>物料批号</TableHead>
-                  <TableHead>当前米数</TableHead>
-                  <TableHead>长度设定</TableHead>
-                  <TableHead>当前直径</TableHead>
-                  {/* <TableHead>氟离子浓度</TableHead> */}
-                  <TableHead>状态</TableHead>
-                  <TableHead>最后更新</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-              {productionLinesWithData.map(({ lineId, data: line, hasData }) => (
-                  <TableRow key={lineId}>
-                    <TableCell>
-                      <span>{line?.line_id || lineId}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span>{line?.batch_product_number || '-'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span>{line?.batch_product_number || '-'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <SensorValueView sensor={line?.current_length} unit="m" />
-                    </TableCell>
-                    <TableCell>
-                      <SensorValueView sensor={line?.target_length} unit="m" />
-                    </TableCell>
-                    <TableCell>
-                      <SensorValueView sensor={line?.diameter} unit="mm" />
-                    </TableCell>
-                    {/* <TableCell>
-                      <SensorValueView sensor={line?.fluoride_concentration} unit="mg/L" />
-                    </TableCell> */}
-                    <TableCell>
-                      <StatusBadge status={getProductionStatus(line?.motor_screw_speed)} />
-                    </TableCell>
-                    <TableCell>
-                      <span>{line?.timestamp ? new Date(line.timestamp).toLocaleString() : '-'}</span>
-                    </TableCell>
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-max rounded-md border">
+              <Table className='font-mono text-sm'>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>生产线</TableHead>
+                    <TableHead>生产批号</TableHead>
+                    <TableHead>物料编号</TableHead>
+                    <TableHead>当前米数</TableHead>
+                    <TableHead>长度设定</TableHead>
+                    <TableHead>当前直径</TableHead>
+                    {/* <TableHead>氟离子浓度</TableHead> */}
+                    <TableHead>状态</TableHead>
+                    <TableHead>最后更新</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                {productionLinesWithData.map(({ lineId, data: line, hasData }) => (
+                    <TableRow key={lineId}>
+                      <TableCell>
+                        <span>{line?.line_id || lineId}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span>{line?.batch_product_number || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span>{line?.batch_product_number?.substring(1, 5) || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.current_length} unit="m" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.target_length} unit="m" />
+                      </TableCell>
+                      <TableCell>
+                        <SensorValueView sensor={line?.diameter} unit="mm" />
+                      </TableCell>
+                      {/* <TableCell>
+                        <SensorValueView sensor={line?.fluoride_concentration} unit="mg/L" />
+                      </TableCell> */}
+                      <TableCell>
+                        <StatusBadge status={getProductionStatus(line?.motor_screw_speed)} />
+                      </TableCell>
+                      <TableCell>
+                        <span>{line?.timestamp ? new Date(line.timestamp).toLocaleString() : '-'}</span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -337,7 +337,7 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
         <CardContent>
         <div className="overflow-x-auto">
           <div className="rounded-md border">
-            <Table>
+            <Table className='font-mono text-sm'>
               <TableHeader>
                 <TableRow>
                   <TableHead>生产线</TableHead>
@@ -347,17 +347,17 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                   <TableHead>法兰电流</TableHead>
                   <TableHead>模具温度</TableHead>
                   <TableHead>模具电流</TableHead>
-                  <TableHead>主机当前电流</TableHead>
-                  <TableHead>主机当前扭力</TableHead>
-                  <TableHead>主机当前速度</TableHead>
-                  <TableHead>牵引当前速度</TableHead>
-                  <TableHead>真空当前速度</TableHead>
-                  <TableHead>当前收卷速度</TableHead>
-                  <TableHead>当前收卷扭力</TableHead>
-                  <TableHead>当前排管层数</TableHead>
-                  <TableHead>当前排管速度</TableHead>
-                  <TableHead>当前排管根数</TableHead>
-                  <TableHead>最后更新</TableHead>
+                  <TableHead>主机电流</TableHead>
+                  <TableHead>主机扭力</TableHead>
+                  <TableHead>主机速度</TableHead>
+                  <TableHead>牵引速度</TableHead>
+                  <TableHead>真空速度</TableHead>
+                  <TableHead>收卷速度</TableHead>
+                  <TableHead>收卷扭力</TableHead>
+                  <TableHead>排管层数</TableHead>
+                  <TableHead>排管速度</TableHead>
+                  <TableHead>排管根数</TableHead>
+                  {/* <TableHead>最后更新</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -369,19 +369,19 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div>
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.temp_body_zone1} unit="°C" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.temp_body_zone2} unit="°C" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">3:</span>
+                          <span className="text-muted-foreground">3: </span>
                           <SensorValueView sensor={line?.temp_body_zone3} unit="°C" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">4:</span>
+                          <span className="text-muted-foreground">4: </span>
                           <SensorValueView sensor={line?.temp_body_zone4} unit="°C" />
                         </div>
                       </div>
@@ -389,19 +389,19 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div>
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.current_body_zone1} unit="A" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.current_body_zone2} unit="A" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">3:</span>
+                          <span className="text-muted-foreground">3: </span>
                           <SensorValueView sensor={line?.current_body_zone3} unit="A" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">4:</span>
+                          <span className="text-muted-foreground">4: </span>
                           <SensorValueView sensor={line?.current_body_zone4} unit="A" />
                         </div>
                       </div>
@@ -409,11 +409,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.temp_flange_zone1} unit="°C" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.temp_flange_zone2} unit="°C" />
                         </div>
                       </div>
@@ -421,11 +421,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.current_flange_zone1} unit="A" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.current_flange_zone2} unit="A" />
                         </div>
                       </div>
@@ -433,11 +433,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.temp_mold_zone1} unit="°C" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.temp_mold_zone2} unit="°C" />
                         </div>
                       </div>
@@ -445,11 +445,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-muted-foreground">1:</span>
+                          <span className="text-muted-foreground">1: </span>
                           <SensorValueView sensor={line?.current_mold_zone1} unit="A" />
                         </div>
                         <div>
-                          <span className="text-muted-foreground">2:</span>
+                          <span className="text-muted-foreground">2: </span>
                           <SensorValueView sensor={line?.current_mold_zone2} unit="A" />
                         </div>
                       </div>
@@ -484,11 +484,11 @@ export default function VisualizationCenter({ showTitle = false }: Visualization
                     <TableCell>
                       <SensorValueView sensor={line?.winder_tube_count} unit="P" />
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <span>
                         {line?.timestamp ? new Date(line.timestamp).toLocaleString() : '-'}
                       </span>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

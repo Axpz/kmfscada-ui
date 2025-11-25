@@ -420,7 +420,7 @@ export default function AlarmRules() {
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="flex-1 sm:flex-initial">
+              <Button className="flex-initial">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 添加报警规则
               </Button>

@@ -13,7 +13,7 @@ interface SensorValueViewProps {
 export const SensorValueView: React.FC<SensorValueViewProps> = ({
   sensor,
   unit = '',
-  precision = 0,
+  precision = 1,
   className = 'text-green-500',
   fallbackText = '-'
 }) => {

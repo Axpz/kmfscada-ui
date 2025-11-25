@@ -95,7 +95,7 @@ export default function ExportHistory() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+      <div className="gap-y-4 md:gap-y-6">
         {/* 页面头部 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

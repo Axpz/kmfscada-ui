@@ -12,18 +12,18 @@ const VisualizationCamerasPage = () => {
       description="实时摄像头数据流监控和分析"
     >
       <Suspense fallback={<LoadingSpinner />}>
-        <div className="space-y-6">
+        {/* <div className="space-y-6"> */}
           {/* 页面头部 */}
-          <div>
+          {/* <div>
             <h2 className="text-lg font-semibold">摄像头监控</h2>
             <p className="text-sm text-muted-foreground">
               实时摄像头数据流监控和分析
             </p>
-          </div>
+          </div> */}
 
           {/* 主要内容 */}
           <VisualizationCamera />
-        </div>
+        {/* </div> */}
       </Suspense>
     </VisualizationLayout>
   )

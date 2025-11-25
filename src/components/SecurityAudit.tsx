@@ -44,10 +44,7 @@ import { useAuditLogs } from '@/hooks/useAuditLogs'
 import type { AuditLogFilter } from '@/types'
 
 export default function SecurityAudit() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [searchTerm, setSearchTerm] = useState('')
   const [actionFilter, setActionFilter] = useState<string>('')
 
@@ -123,7 +120,7 @@ export default function SecurityAudit() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+      <div className="flex flex-col gap-y-4 md:gap-y-6">
         {/* 页面头部 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
